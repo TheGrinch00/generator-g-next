@@ -13,9 +13,9 @@ const requirePackages = (genyg, pkgs) => {
       genyg.log(
         yosay(
           chalk.red(
-            `You need ${pkg} package installed in order to run this command. Run yo g-next:pkg-${pkg} to fix this.`
-          )
-        )
+            `You need ${pkg} package installed in order to run this command. Run yo g-next:pkg-${pkg} to fix this.`,
+          ),
+        ),
       );
       process.exit(0);
       return;
@@ -36,7 +36,7 @@ const copyEjsTemplateFolder = (genyg, srcFolder, destFolder, params) => {
         genyg,
         fOrDPath,
         `${destFolder}/${fOrDName}`,
-        params
+        params,
       );
     } else {
       genyg.fs.copyTpl(fOrDPath, `${destFolder}/${fOrDName}`, params);
@@ -52,12 +52,12 @@ const extendEnv = (genyg, envName, newContent) => {
   let envFileContent = "";
   try {
     envFileContent = genyg.fs.read(
-      genyg.destinationPath(`.env${envName ? "." + envName : ""}`)
+      genyg.destinationPath(`.env${envName ? "." + envName : ""}`),
     );
   } catch (e) {}
   genyg.fs.write(
     genyg.destinationPath(`.env${envName ? "." + envName : ""}`),
-    `${envFileContent.trimEnd()}\n${newContent}\n`
+    `${envFileContent.trimEnd()}\n${newContent}\n`,
   );
 };
 

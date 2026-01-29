@@ -15,7 +15,8 @@ import testsTpl from "./templates/endpoint/index.test.js";
 import pageTpl from "./templates/page/index.js";
 const getEndpointHandlersTemplate = handlerTpl?.default || handlerTpl;
 const getEndpointInterfacesTemplate = interfacesTpl?.default || interfacesTpl;
-const getEndpointValidationsTemplate = validationsTpl?.default || validationsTpl;
+const getEndpointValidationsTemplate =
+  validationsTpl?.default || validationsTpl;
 const getEndpointTestsTemplate = testsTpl?.default || testsTpl;
 const getEndpointPageTemplate = pageTpl?.default || pageTpl;
 
@@ -201,14 +202,19 @@ export default class ApiGenerator extends Generator {
     const apiName = getFunctionName(method, params);
     const [routePath, urlParams] = getAjaxPath(params);
     const pagesApiFolders = getPagesApiFolders(params);
-    const hasPayload = [HttpMethods.PATCH, HttpMethods.POST, HttpMethods.PUT].includes(method);
+    const hasPayload = [
+      HttpMethods.PATCH,
+      HttpMethods.POST,
+      HttpMethods.PUT,
+    ].includes(method);
 
     // Create Next.js app router API folders and route.ts
     let currentRoute = "";
     for (let i = 0; i < pagesApiFolders.length; i++) {
       const folder = pagesApiFolders[i];
       currentRoute = path.posix.join(currentRoute, folder);
-      const relativeToPagesFolder = path.posix.join("./src/app/api", currentRoute) + "/";
+      const relativeToPagesFolder =
+        path.posix.join("./src/app/api", currentRoute) + "/";
       if (
         !(
           fs.existsSync(relativeToPagesFolder) &&
@@ -219,7 +225,9 @@ export default class ApiGenerator extends Generator {
       }
       if (!fs.existsSync(path.posix.join(relativeToPagesFolder, "route.ts"))) {
         this.fs.write(
-          this.destinationPath(path.posix.join(relativeToPagesFolder, "route.ts")),
+          this.destinationPath(
+            path.posix.join(relativeToPagesFolder, "route.ts"),
+          ),
           getEndpointPageTemplate(getEndpointRoutePath(params.slice(0, i + 1))),
         );
       }
@@ -234,9 +242,17 @@ export default class ApiGenerator extends Generator {
     );
     this.fs.write(
       this.destinationPath(
-        path.posix.join("./src/endpoints", endpointFolderName, "validations.ts"),
+        path.posix.join(
+          "./src/endpoints",
+          endpointFolderName,
+          "validations.ts",
+        ),
       ),
-      getEndpointValidationsTemplate(capitalize(apiName), urlParams, hasPayload),
+      getEndpointValidationsTemplate(
+        capitalize(apiName),
+        urlParams,
+        hasPayload,
+      ),
     );
     this.fs.write(
       this.destinationPath(
@@ -254,7 +270,11 @@ export default class ApiGenerator extends Generator {
       this.destinationPath(
         path.posix.join("./src/endpoints", endpointFolderName, "index.test.ts"),
       ),
-      getEndpointTestsTemplate(endpointFolderName, apiName, capitalize(apiName)),
+      getEndpointTestsTemplate(
+        endpointFolderName,
+        apiName,
+        capitalize(apiName),
+      ),
     );
   }
 }
