@@ -16,3 +16,6 @@ coverage
 __tests__
 *.test.js
 *.spec.js
+# Include generator templates that are named *.test.js (they get copied as user tests)
+!generators/**/*.test.js
+!generators/**/*.spec.js
