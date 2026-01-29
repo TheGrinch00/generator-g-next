@@ -1,208 +1,143 @@
 # generator-g-next
 
-Welcome to the GeNYG project! GeNYG is a generator made with Yeoman by Getapper for scaffolding, development, testing and deployment of applications in NextJS.
+**GeNYG** (Getapper NextJS Yeoman Generator) is a [Yeoman](https://yeoman.io/) generator for scaffolding, developing, testing, and deploying **Next.js** applications. It provides a set of composable sub-generators for pages, APIs, SPAs, forms, AWS schedulers, authentication, and more, so you can bootstrap and extend a Next.js project in a consistent way.
 
-## Commands
+---
 
-### yo g-next:app
+## Purpose of this repository
 
-Execute `npx create-next-app@latest` with support for NPM, TypeScript in the current directory (so you should first create a repo, clone locally, and run this command inside this repo).
+This repository is the **Getapper NextJS Yeoman Generator**: a single place that defines how Next.js apps are structured at Getapper. It:
 
-### yo g-next:aws-scheduler
-**dependencies: pkg-core.**\
-Thanks to this command is possible to create a new aws scheduler and select as a target an api destination, in particular:
+- **Bootstraps** new Next.js apps with a fixed stack (TypeScript, ESLint, `src` layout).
+- **Adds optional packages** (MUI, Redux/SPA, i18n, MongoDB, Cognito, cookie auth) via `pkg-*` generators.
+- **Scaffolds features** (pages, API routes, components, forms, Redux slices, SPAs, models, tasks) so file layout and patterns stay consistent.
+- **Integrates with AWS** (EventBridge, Scheduler, IAM) to create and manage scheduled API invocations.
 
--It should add a new destination role if none existing or if the user wants to create a new one
+You run it with `yo g-next:<subgenerator>` (or `npx yo g-next:<subgenerator>`) from inside a project. Most feature generators depend on having run the right `pkg-*` (and sometimes `app`) first; the generator will tell you if a required package is missing.
 
--It should add a new scheduler role if none existing or if the user wants to create a new one
+---
 
--It should add a new connection if none existing or if the user wants to create a new one
+## Getting started
 
--It should create a new event bus if none existing or if the user wants to create a new one
+1. **Install the generator** (global or via npx):
+   ```bash
+   npm install -g yo generator-g-next
+   ```
+2. **Create and enter a new project folder** (e.g. clone an empty repo or `mkdir my-app && cd my-app`).
+3. **Bootstrap the app** with `yo g-next:app` (see below).
+4. **Install the core package** with `yo g-next:pkg-core` (recommended right after the app).
+5. **Add optional packages** (e.g. `pkg-mui`, `pkg-spa`) and then use the feature generators (page, api, comp, form, slice, etc.).
 
--It should create a target for the selected api destination
+---
 
--It should add in the endpoint folder all the necessary files in order to manage the ajax calls
+## Generators overview
 
--It should create a new scheduler and a new rule with the invocation rate selected
+### Bootstrap
 
-### yo g-next:aws-update-schedule
-**dependencies: pkg-core.**\
-It updates the status or the invocation Rate of a specified scheduler
+| Command              | Purpose                                                                                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `yo g-next:app`      | Creates the Next.js app in the current directory via `create-next-app` (TypeScript, npm, ESLint, `src` dir, no Tailwind). Run in an empty project folder.                                              |
+| `yo g-next:pkg-core` | **Requires:** fresh Next.js app. Installs GeNYG “core”: ESLint + Prettier, Husky + lint-staged, Jest, env handling, `.genyg.json`, AppHead, response-handler and test utils. **Run once after `app`.** |
 
-### yo g-next:aws-delete-scheduler
-**dependencies: pkg-core.**\
-It deletes a specified scheduler and also all the rules and apiDestinations linked to him.
+---
 
-### yo g-next:pkg-core
+### Packages (run once per project)
 
-**Thanks to this package you will get basic linting support with eslint + prettier and initialize GeNYG configuration.**\
-This will:
-- install all basic packages for code linting and styling (by fixing the eslint plugin used by default by Next and installing prettier).
-- add husky and lint-staged in order to clean the code before committing to the repo.
-- add the AppHead component
-- add the GeNYG config file .genyg.json
+These add dependencies and shared code; many other generators depend on them.
 
-### yo g-next:pkg-mui
+| Command                      | Depends on | Purpose                                                                                                                                                                              |
+| ---------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `yo g-next:pkg-core`         | —          | Core tooling and GeNYG config (see above).                                                                                                                                           |
+| `yo g-next:pkg-mui`          | pkg-core   | MUI (Material UI), react-hook-form, yup, Emotion; form primitives (FormTextField, FormSelect, FormDatePicker, etc.), AppButton, AppSnackbar, themes, useConfirmDialog, useFormField. |
+| `yo g-next:pkg-spa`          | pkg-core   | Redux Toolkit, Redux Saga, redux-persist, react-router-dom, axios. Base for building SPAs inside Next.js.                                                                            |
+| `yo g-next:pkg-translations` | pkg-mui    | i18next + react-i18next; translation folders (en/it/fake), types, LanguageMenu, TranslatedRoute, useInitializeTranslations, useTypedTranslations.                                    |
+| `yo g-next:pkg-mongodb`      | pkg-core   | MongoDB driver; lib for connection and DAO; env vars (MONGODB_URI, MONGODB_NAME).                                                                                                    |
+| `yo g-next:pkg-cognito`      | pkg-spa    | AWS Cognito: amazon-cognito-identity-js, aws-amplify, aws-sdk, JWT handling; FE/BE env vars and lib/model stubs.                                                                     |
+| `yo g-next:pkg-cookie-auth`  | pkg-core   | Cookie-based auth with `iron-session`; test session helpers. Registers in `.genyg.json`; use with `cookie-auth-role` to add roles.                                                   |
 
-#### dependencies: pkg-core
+---
 
-**Thanks to this package you will be able to use MUI components, and to create forms based on MUI input fields plus
-react-hook-form library with yup validation support.**\
-It will install all MUI related dependencies, that is:
-- MUI core
-- MUI icons
-- react-hook-form
-- yup validation support
-- _form basic components based on MUI and react-hook-form
+### Pages and UI building blocks
 
-### yo g-next:pkg-spa
+| Command          | Depends on | Purpose                                                                                                                                                                       |
+| ---------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `yo g-next:page` | pkg-core   | New Next.js page under `src/pages/`. Choose path, name, dynamic segments (e.g. `[id]`, `[[...params]]`), and rendering: none, SSG, or SSR. Optional cookie-auth role for SSR. |
+| `yo g-next:comp` | pkg-core   | New React component + hooks file under `src/components/` (optionally in a subfolder).                                                                                         |
+| `yo g-next:form` | pkg-mui    | New form component with FormProvider and yup schema under `src/components/`.                                                                                                  |
 
-#### dependencies: pkg-core
+---
 
-**Thanks to this package you will be able to add one or multiple Single Page Application to your app.**\
-In particular it will install:
-- react-router-dom libs
-- redux libs plus plugins
-- axios for ajax support
+### API and backend
 
-### yo g-next:pkg-translations
+| Command                   | Depends on  | Purpose                                                                                                                                                                     |
+| ------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `yo g-next:api`           | pkg-core    | New API endpoint: handler, interfaces, validations, test, and wiring under `src/endpoints/` plus the corresponding route under `src/pages/api/`. Optional cookie-auth role. |
+| `yo g-next:model`         | pkg-core    | New model file in `src/models/client`, `server`, or `common` (for React-only, Node-only, or shared code).                                                                   |
+| `yo g-next:model-mongodb` | pkg-mongodb | New server-side MongoDB model under `src/models/server/` using the project’s MongoDB template (collection name derived from model name).                                    |
+| `yo g-next:task`          | pkg-core    | New task under `src/tasks/` with `index.ts` and `exec.ts`, plus a `TASK:<TaskName>` script in package.json (ts-node with path mapping). Optional MongoDB usage.             |
 
-#### dependencies: pkg-core
+---
 
-It installs everything needed to handle translations with i18next, in particular:
-- `./translations` folder with translations files types and contents for each locale
-- a next config file option to support i18n
-- 2 react hooks to initialize and use translations with react
+### Single Page Applications (SPA)
 
-### yo g-next:model
+| Command           | Depends on | Purpose                                                                                                                                                                                                                               |
+| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `yo g-next:spa`   | pkg-spa    | New SPA: a Next.js page that mounts the SPA + a full SPA scaffold under `src/spas/<name>/` (App, Redux store with ajax/feedback slices, extra-actions/apis, scenes). Adds a rewrite in Next config so the SPA route is client-routed. |
+| `yo g-next:scene` | pkg-spa    | New scene (route/container) inside an existing SPA under `src/spas/<spa>/scenes/`.                                                                                                                                                    |
+| `yo g-next:slice` | pkg-spa    | New Redux slice for an SPA: state, interfaces, selectors, optional sagas; registered in the SPA’s slices index.                                                                                                                       |
+| `yo g-next:ajax`  | pkg-spa    | New API call for an SPA: adds an action under `redux-store/extra-actions/apis/` for a given HTTP method and route (supports path params).                                                                                             |
 
-#### dependencies: pkg-core
+---
 
-It creates a new model inside `./models/server`, `./models/common` or `./models/client` folder, depending on the usage of the model, client if it is supposed to run in the frontend in React, server if it supposed to run in the backend with NodeJS, common for both.\
-Having different folders and files (even to represent the same entity) from backend and frontend avoids issues when loading browser-related code in the backend code, or file-system-related code in the frontend.
+### Authentication
 
-### yo g-next:scene
+| Command                      | Depends on      | Purpose                                                                                                                                                                                                                                                                                                           |
+| ---------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `yo g-next:cognito`          | pkg-cognito     | Injects Cognito Redux slice (sagas, selectors, interfaces) into a chosen SPA.                                                                                                                                                                                                                                     |
+| `yo g-next:cookie-auth-role` | pkg-cookie-auth | Adds one or more cookie-auth roles (e.g. `admin`, `user`). Creates session model per role under `src/models/server/`, updates `src/lib/session/index.ts` (iron-session config and typings), and extends `.genyg.json` and env template. API and page generators can then attach a role to endpoints or SSR pages. |
 
-#### dependencies: pkg-spa
+---
 
-It creates a new scene for the specified SPA.
+### AWS Scheduler
 
-
-### yo g-next:pkg-mongodb
-
-#### dependencies: pkg-core
-
-- It adds mongodb node dependency
-- It adds mongodb library files inside /lib
-- It adds mongo env vars to the env files
-
-### yo g-next:model-mongodb
-
-#### dependencies: pkg-mongodb
-
-- It creates a new model inside `./models/server` folder with the mongoDB model template
-
-### yo g-next:page
-
-#### dependencies: pkg-core
-
-It creates a new page inside NextJS project, inside /pages root folder or one of its subfolders.\
-It also allows specifying if the component is:
-- a normal page (eg. /news)
-- a dynamic page with a parameter (eg. /news/\[newsId\])
-- a dynamic page with multiple parameters (eg. /news/\[\[...parameters]])\
-It also gives the possibility to specify the server rendering mode (SSG or SSR).
-
-### yo g-next:comp
-
-#### dependencies: pkg-core
-
-It creates a new component with a hook file. A subfolder of the components one can be selected as well.
-
-### yo g-next:ajax
-
-#### dependencies: pkg-spa
-
-It creates a new AJAX function for the specified SPA.
-
-### yo g-next:slice
-
-#### dependencies: pkg-spa
-
-It creates a new redux slice for the specified SPA.
-
-### yo g-next:form
-
-#### dependencies: pkg-mui
-
-It creates a new form component in the selected folder, with FormProvider and yup schema validation support.
-
-### yo g-next:api
-
-#### dependencies: pkg-core
-
-It creates a new API endpoint folder insider /endpoints, with interfaces, validations, tests and handler function.\
-It also connects this endpoint function to the Next `./api` folder and its configuration files
-
-## TODO
-
-### yo g-next:pkg-core
-
-- Add sitemap.xml generation
-
-### yo g-next:model-mongodb
-
-- Add project to getList
-
-### yo g-next:task
-
-- It should create a new task.ts file in the tasks' folder, with the env files requires and a script in the package.json to run it. 
-
-### yo g-next:spa
-
-It should check if pkg-translations is installed.\
-In this case, BrowserRouter basename shouldn't be set to "/page-route", since it will not take in consideration the `/:languageCode` parameter in the URI.\
-So something like this:
-```jsx
-  <BrowserRouter basename="/app">
-    <Routes>
-      <Route path="/" element={<span />} />
-    </Routes>
-  </BrowserRouter>
-```
-should become like this:
-```jsx
-  <BrowserRouter>
-    <Routes>
-      <Route path="/:languageCode/app/" element={<span />} />
-    </Routes>
-  </BrowserRouter>
-```
-Also, if pkg-translations is installed, the `<App />` component should call the `useInitializeTranslations();` hook, like:
-```jsx
-// .....
-
-const useAppHooks = () => {
-  useInitializeTranslations();
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(actions.appStartup());
-  }, [dispatch]);
-
-  return {
-    theme,
-  };
-};
-
-export default useAppHooks;
-```
-
-### yo g-next:pkg-cognito
-
-- It should add all the backend library files inside the `./lib` folder
-- It should add all fe and be dependencies to the package json
-- It should add all the required env vars to all env files
-
-### yo g-next:aws-scheduler-role
+Requires AWS credentials and region in `.genyg.ignore.json`. All scheduler commands depend on **pkg-core**.
+
+| Command                          | Purpose                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `yo g-next:aws-scheduler-role`   | Creates an IAM role for EventBridge Scheduler (with permission to put events to a chosen event bus). **Run before the first `aws-scheduler`.**                                                                                                                                                                                                                               |
+| `yo g-next:aws-scheduler`        | Creates a full scheduled “API call”: destination role (optional), connection (optional), event bus (optional), API destination, rule, target, and a schedule. Also scaffolds the same endpoint structure as `api` (handler, validations, interfaces, tests, pages/api route) so the scheduler can call that route. You choose invocation rate and status (ENABLED/DISABLED). |
+| `yo g-next:aws-update-scheduler` | Updates an existing GeNYG scheduler: status and/or invocation rate.                                                                                                                                                                                                                                                                                                          |
+| `yo g-next:aws-delete-scheduler` | Deletes a GeNYG scheduler and its associated rule and API destination.                                                                                                                                                                                                                                                                                                       |
+
+---
+
+### Other
+
+| Command             | Purpose                                             |
+| ------------------- | --------------------------------------------------- |
+| `yo g-next:version` | Prints the generator’s version (from package.json). |
+
+---
+
+## Dependency summary
+
+- **app** → none (run in empty dir).
+- **pkg-core** → run after `app`; many others depend on it.
+- **pkg-mui** → pkg-core.
+- **pkg-spa** → pkg-core.
+- **pkg-translations** → pkg-mui (and thus pkg-core).
+- **pkg-mongodb** → pkg-core.
+- **pkg-cognito** → pkg-spa.
+- **pkg-cookie-auth** → pkg-core.
+- **page, comp, api, model, task** → pkg-core (and **form** → pkg-mui; **api** / **page** can use cookie-auth if configured).
+- **spa, scene, slice, ajax** → pkg-spa.
+- **cognito** (Cognito slice in SPA) → pkg-cognito.
+- **cookie-auth-role** → pkg-cookie-auth.
+- **model-mongodb** → pkg-mongodb.
+- **aws-scheduler-role, aws-scheduler, aws-update-scheduler, aws-delete-scheduler** → pkg-core; **aws-scheduler** should be run after **aws-scheduler-role** when creating the first scheduler.
+
+---
+
+## License
+
+MIT · Getapper
