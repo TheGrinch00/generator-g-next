@@ -1,15 +1,11 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const { pascalCase } = require("pascal-case");
-const {
-  getGenygConfigFile,
-  getSpas,
-  requirePackages,
-} = require("../../common");
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import path from "path";
+import { pascalCase } from "pascal-case";
+import { getGenygConfigFile, getSpas, requirePackages } from "../../common/index.js";
 
-module.exports = class extends Generator {
+export default class SliceGenerator extends Generator {
   async prompting() {
     // Config checks
     requirePackages(this, ["spa"]);
@@ -18,45 +14,53 @@ module.exports = class extends Generator {
       yosay(
         `Welcome to ${chalk.red(
           "generator-g-next",
-        )} redux slice generator, follow the quick and easy configuration to create a new slice!`,
+        )} redux slice generator. Follow the quick configuration to create a new slice!`,
       ),
     );
 
     let answers = {};
     const spas = getSpas(this);
+
+    if (!Array.isArray(spas) || spas.length === 0) {
+      this.log(yosay(chalk.red("No SPAs found. Please generate a SPA first.")));
+      this.abort = true;
+      return;
+    }
+
     if (spas.length > 1) {
       answers = await this.prompt([
         {
           type: "list",
           name: "spaFolderName",
-          message: "In which SPA you want to create a scene?",
-          choices: getSpas(this),
+          message: "In which SPA do you want to create a slice?",
+          choices: spas,
         },
       ]);
     } else {
       answers.spaFolderName = spas[0];
     }
 
-    answers = {
-      ...answers,
-      ...(await this.prompt([
-        {
-          type: "input",
-          name: "sliceName",
-          message: "What is your slice name?",
-        },
-        {
-          type: "confirm",
-          name: "useSagas",
-          message: "Would you like to create a saga file?",
-          default: true,
-        },
-      ])),
-    };
+    const more = await this.prompt([
+      {
+        type: "input",
+        name: "sliceName",
+        message: "What is your slice name?",
+        validate: (v) => !!(v && v.trim()) || "Please enter a slice name",
+        filter: (v) => (v || "").trim(),
+      },
+      {
+        type: "confirm",
+        name: "useSagas",
+        message: "Would you like to create a saga file?",
+        default: true,
+      },
+    ]);
 
-    if (answers.sliceName === "") {
+    answers = { ...answers, ...more };
+
+    if (!answers.sliceName) {
       this.log(yosay(chalk.red("Please give your slice a name next time!")));
-      process.exit(1);
+      this.abort = true;
       return;
     }
 
@@ -64,107 +68,151 @@ module.exports = class extends Generator {
   }
 
   writing() {
+    if (this.abort) return;
+
     const { useSagas, sliceName, spaFolderName } = this.answers;
     const pCsliceName = pascalCase(sliceName);
-    const reduxStorePath = `./src/spas/${spaFolderName}/redux-store`;
+    const reduxStorePath = path.posix.join("src/spas", spaFolderName, "redux-store");
 
-    /**
-     * Slice/index.tsx file
-     */
-
+    // Slice/index.ts
     this.fs.copyTpl(
       this.templatePath("index.ejs"),
       this.destinationPath(
-        `./src/spas/${spaFolderName}/redux-store/slices/${sliceName}/index.ts`,
+        path.posix.join(reduxStorePath, "slices", sliceName, "index.ts"),
       ),
-      {
-        sliceName,
-        pCsliceName,
-        useSagas,
-      },
+      { sliceName, pCsliceName, useSagas },
     );
 
-    // Slice/interface/index.tsx file
+    // Slice interfaces
     this.fs.copyTpl(
       this.templatePath("interface.index.ejs"),
       this.destinationPath(
-        `${reduxStorePath}/slices/${sliceName}/${sliceName}.interfaces.ts`,
+        path.posix.join(
+          reduxStorePath,
+          "slices",
+          sliceName,
+          `${sliceName}.interfaces.ts`,
+        ),
       ),
-      {
-        pCsliceName,
-      },
+      { pCsliceName },
     );
 
-    //Slice/selectors/index.tsx file
+    // Slice selectors
     this.fs.copyTpl(
       this.templatePath("selectors.index.ejs"),
       this.destinationPath(
-        `${reduxStorePath}/slices/${sliceName}/${sliceName}.selectors.ts`,
+        path.posix.join(
+          reduxStorePath,
+          "slices",
+          sliceName,
+          `${sliceName}.selectors.ts`,
+        ),
       ),
-      {
-        sliceName,
-        pCsliceName,
-        spaFolderName,
-      },
+      { sliceName, pCsliceName, spaFolderName },
     );
 
-    // Slice/sagas/index.tsx file
+    // Slice sagas (optional)
     if (useSagas) {
       this.fs.copyTpl(
         this.templatePath("sagas.index.ejs"),
         this.destinationPath(
-          `${reduxStorePath}/slices/${sliceName}/${sliceName}.sagas.ts`,
+          path.posix.join(
+            reduxStorePath,
+            "slices",
+            sliceName,
+            `${sliceName}.sagas.ts`,
+          ),
         ),
-        {
-          sliceName,
-        },
+        { sliceName },
       );
     }
 
-    let slicesIndex = this.fs.read(
-      this.destinationPath(`${reduxStorePath}/slices/index.ts`),
+    // Update slices/index.ts
+    const indexPath = this.destinationPath(
+      path.posix.join(reduxStorePath, "slices", "index.ts"),
     );
 
-    let match = slicesIndex.match(/import(.*?);\r?\n\r?\n/)[0];
-    slicesIndex = slicesIndex.replace(
-      match,
-      `${match.slice(0, -1)}import * as ${sliceName} from "./${sliceName}";
+    let slicesIndex = "";
+    try {
+      slicesIndex = this.fs.read(indexPath);
+    } catch (e) {
+      this.log(
+        chalk.yellow(
+          `Warning: slices index not found at ${indexPath}. Creating a new one.`,
+        ),
+      );
+      slicesIndex = "// Auto-generated by GeNYG\n\nimport { combineReducers } from '@reduxjs/toolkit';\n\nexport const reducers = {\n};\n\nexport const actions = {\n};\n\nexport const selectors = {\n};\n\nexport const sagas = [\n];\n";
+    }
 
-`,
-    );
-    match = slicesIndex.match(/(.*)Store(.*?).reducer,?\r?\n}/)[0];
-    slicesIndex = slicesIndex.replace(
-      match,
-      `${match.slice(
-        0,
-        -1,
-      )}  ${sliceName}: ${sliceName}.${sliceName}Store.reducer,
-}`,
-    );
-    match = slicesIndex.match(/(.*)Store(.*?).actions,?\r?\n}/)[0];
-    slicesIndex = slicesIndex.replace(
-      match,
-      `${match.slice(0, -1)}  ...${sliceName}.${sliceName}Store.actions,
-}`,
-    );
-    match = slicesIndex.match(/(.*).selectors,?\r?\n}/)[0];
-    slicesIndex = slicesIndex.replace(
-      match,
-      `${match.slice(0, -1)}  ...${sliceName}.selectors,
-}`,
-    );
-    if (useSagas) {
-      match = slicesIndex.match(/(.*)Object.values(.*),?\r?\n]/)[0];
+    // 1) add import line
+    try {
+      const importMatch = slicesIndex.match(/import(.*?);\r?\n\r?\n/)[0];
       slicesIndex = slicesIndex.replace(
-        match,
-        `${match.slice(0, -1)}  ...Object.values(${sliceName}.sagas),
-]`,
+        importMatch,
+        `${importMatch.slice(0, -1)}import * as ${sliceName} from "./${sliceName}";\n\n`,
+      );
+    } catch (e) {
+      this.log(
+        chalk.yellow(
+          `Warning: could not inject import for slice '${sliceName}'. Please update slices/index.ts manually.`,
+        ),
       );
     }
 
-    this.fs.write(
-      this.destinationPath(`${reduxStorePath}/slices/index.ts`),
-      slicesIndex,
-    );
+    // 2) add reducer entry
+    try {
+      const reducerMatch = slicesIndex.match(/(.*)Store(.*?).reducer,?\r?\n}/)[0];
+      slicesIndex = slicesIndex.replace(
+        reducerMatch,
+        `${reducerMatch.slice(0, -1)}  ${sliceName}: ${sliceName}.${sliceName}Store.reducer,\n}`,
+      );
+    } catch (e) {
+      this.log(
+        chalk.yellow(`Warning: could not inject reducer for slice '${sliceName}'.`),
+      );
+    }
+
+    // 3) add actions spread
+    try {
+      const actionsMatch = slicesIndex.match(/(.*)Store(.*?).actions,?\r?\n}/)[0];
+      slicesIndex = slicesIndex.replace(
+        actionsMatch,
+        `${actionsMatch.slice(0, -1)}  ...${sliceName}.${sliceName}Store.actions,\n}`,
+      );
+    } catch (e) {
+      this.log(
+        chalk.yellow(`Warning: could not inject actions for slice '${sliceName}'.`),
+      );
+    }
+
+    // 4) add selectors spread
+    try {
+      const selectorsMatch = slicesIndex.match(/(.*).selectors,?\r?\n}/)[0];
+      slicesIndex = slicesIndex.replace(
+        selectorsMatch,
+        `${selectorsMatch.slice(0, -1)}  ...${sliceName}.selectors,\n}`,
+      );
+    } catch (e) {
+      this.log(
+        chalk.yellow(`Warning: could not inject selectors for slice '${sliceName}'.`),
+      );
+    }
+
+    // 5) add sagas if present
+    if (useSagas) {
+      try {
+        const sagasMatch = slicesIndex.match(/(.*)Object.values(.*),?\r?\n]/)[0];
+        slicesIndex = slicesIndex.replace(
+          sagasMatch,
+          `${sagasMatch.slice(0, -1)}  ...Object.values(${sliceName}.sagas),\n]`,
+        );
+      } catch (e) {
+        this.log(
+          chalk.yellow(`Warning: could not inject sagas for slice '${sliceName}'.`),
+        );
+      }
+    }
+
+    this.fs.write(indexPath, slicesIndex);
   }
-};
+}

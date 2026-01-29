@@ -1,26 +1,23 @@
-import React, { memo } from "react";
+import React from "react";
 import { Button, ButtonProps, CircularProgress } from "@mui/material";
 
 export type AppButtonProps = {
   loading?: boolean;
 } & ButtonProps;
 
-export const AppButton = memo(
-  ({ loading = false, ...props }: AppButtonProps) => {
-    if (loading) {
-      return (
-        <Button {...props}>
-          <CircularProgress
-            color={
-              (props.color ?? "primary") === "primary" ? "secondary" : "primary"
-            }
-            size={24}
-          />
-        </Button>
-      );
-    }
+export const AppButton = ({ loading = false, ...props }: AppButtonProps) => {
+  return (
+    <Button
+      {...props}
+      startIcon={
+        loading ? (
+          <CircularProgress color="inherit" size={24} />
+        ) : (
+          props.startIcon
+        )
+      }
+    />
+  );
+};
 
-    return <Button {...props} />;
-  },
-);
 AppButton.displayName = "AppButton";

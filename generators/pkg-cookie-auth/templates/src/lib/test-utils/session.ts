@@ -1,9 +1,9 @@
-import { IronSessionData, IronSessionOptions, sealData } from "iron-session";
+import { IronSessionData, sealData, SessionOptions } from "iron-session";
 
 export class CookieTestHandler {
-  static async createSessionCookie(
+  static async createSessionCookie<T extends IronSessionData>(
     session: IronSessionData,
-    sessionOptions: IronSessionOptions,
+    sessionOptions: SessionOptions,
   ): Promise<{
     cookie: string;
   }> {

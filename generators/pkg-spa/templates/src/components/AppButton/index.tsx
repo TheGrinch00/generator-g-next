@@ -1,30 +1,23 @@
-import React, { memo } from "react";
+import React from "react";
 import { Button, ButtonProps, CircularProgress } from "@mui/material";
-import { useAppButton } from "./index.hooks";
 
-type AppButtonProps = {
+export type AppButtonProps = {
   loading?: boolean;
-  path?: string;
 } & ButtonProps;
 
-export const AppButton = memo(
-  ({ loading = false, path, onClick, ...props }: AppButtonProps) => {
-    const { onButtonClicked } = useAppButton(path, onClick);
+export const AppButton = ({ loading = false, ...props }: AppButtonProps) => {
+  return (
+    <Button
+      {...props}
+      startIcon={
+        loading ? (
+          <CircularProgress color="inherit" size={24} />
+        ) : (
+          props.startIcon
+        )
+      }
+    />
+  );
+};
 
-    if (loading) {
-      return (
-        <Button {...props} onClick={onButtonClicked}>
-          <CircularProgress
-            color={
-              (props.color ?? "primary") === "primary" ? "secondary" : "primary"
-            }
-            size={24}
-          />
-        </Button>
-      );
-    }
-
-    return <Button {...props} onClick={onButtonClicked} />;
-  }
-);
 AppButton.displayName = "AppButton";

@@ -1,8 +1,10 @@
 require("custom-env").env("local");
 require("custom-env");
-import { <%= taskFunctionName %> } from "@/tasks/<%= taskFolder %>";
 <% if (isMongoInstalled) { %>// import mongoDao from "@/lib/mongodb/mongo-dao";
-<% } %>
+  
+  <% } %>
+const { <%= taskFunctionName %> } = require("./index");
+
 (async () => {
   try {
     await <%= taskFunctionName %>();

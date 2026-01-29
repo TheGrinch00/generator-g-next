@@ -1,40 +1,44 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const fs = require("fs");
-const path = require("path");
-const { pascalCase } = require("pascal-case");
-const { requirePackages } = require("../../common");
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import path from "path";
+import { fileSelector, ItemType } from "inquirer-file-selector";
+import { pascalCase } from "pascal-case";
+import { requirePackages } from "../../common/index.js";
 
-module.exports = class extends Generator {
-  initializing() {
-    this.env.adapter.promptModule.registerPrompt(
-      "directory",
-      require("inquirer-directory")
-    );
-  }
+const BASE_COMPONENTS_DIR = "src/components";
 
+export default class FormGenerator extends Generator {
   async prompting() {
     // Config checks
     requirePackages(this, ["mui"]);
 
-    // Have Yeoman greet the user.
+    // Greeting
     this.log(
       yosay(
         `Welcome to ${chalk.red(
-          "Getapper NextJS Yeoman Generator (GeNYG)"
-        )} form generator, follow the quick and easy configuration to create a new form!`
-      )
+          "Getapper NextJS Yeoman Generator (GeNYG)",
+        )} form generator, follow the quick and easy configuration to create a new form!`,
+      ),
     );
 
-    const answers = await this.prompt([
-      {
-        type: "directory",
-        name: "formPath",
-        message: "Select where to create the form:",
-        basePath: "./src/components",
-      },
+    // Folder selection: start inside src/components
+    const rootAbs = this.destinationPath(BASE_COMPONENTS_DIR);
+    const selection = await fileSelector({
+      message: "Select where to create the form:",
+      type: ItemType.Directory,
+      basePath: rootAbs,
+    });
+    const selectedPathAbs =
+      typeof selection === "string"
+        ? selection
+        : selection?.path || selection?.absolutePath || rootAbs;
+    const formPath = path
+      .relative(rootAbs, selectedPathAbs)
+      .split(path.sep)
+      .join(path.posix.sep);
+
+    const { formName: rawName } = await this.prompt([
       {
         type: "input",
         name: "formName",
@@ -42,41 +46,42 @@ module.exports = class extends Generator {
       },
     ]);
 
-    if (answers.formName === "") {
+    if (!rawName || !rawName.trim()) {
       this.log(yosay(chalk.red("Please give your form a name next time!")));
-      process.exit(1);
+      this.abort = true;
       return;
     }
 
-    answers.formName = pascalCase(answers.formName);
-    this.answers = answers;
+    this.answers = {
+      formPath,
+      formName: pascalCase(rawName.trim()),
+    };
   }
 
   writing() {
+    if (this.abort) return;
+
     const { formPath, formName } = this.answers;
 
-    const relativeToComponentsPath = `./${
-      formPath ? formPath + "/" : ""
-    }${formName}`;
+    // Build destination under src/components
+    const destDir = path.posix.join(
+      BASE_COMPONENTS_DIR,
+      formPath ? formPath : "",
+      formName,
+    );
 
-    const relativeToRootPath = `./src/components/${relativeToComponentsPath}`;
-
-    // Index.tsx component file
+    // index.tsx
     this.fs.copyTpl(
       this.templatePath("index.ejs"),
-      this.destinationPath(path.join(relativeToRootPath, "/index.tsx")),
-      {
-        ...this.answers,
-      }
+      this.destinationPath(path.posix.join(destDir, "index.tsx")),
+      { ...this.answers },
     );
 
-    // Index.hooks.tsx hooks file
+    // index.hooks.tsx
     this.fs.copyTpl(
       this.templatePath("index.hooks.ejs"),
-      this.destinationPath(path.join(relativeToRootPath, "/index.hooks.tsx")),
-      {
-        ...this.answers,
-      }
+      this.destinationPath(path.posix.join(destDir, "index.hooks.tsx")),
+      { ...this.answers },
     );
   }
-};
+}

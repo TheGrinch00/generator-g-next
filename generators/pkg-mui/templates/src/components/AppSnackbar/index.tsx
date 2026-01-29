@@ -19,23 +19,27 @@ type AppSnackbarProps = {
   onClose: () => void;
 };
 
-export const AppSnackbar = memo(
-  ({ open, message, severity, onClose }: AppSnackbarProps) => {
-    return (
-      <Snackbar open={open} anchorOrigin={anchorOrigin}>
-        <Alert severity={severity} onClose={onClose}>
-          <AlertTitle>
-            {{
-              success: "Success",
-              error: "Error",
-              info: "Info",
-              warning: "Warning",
-            }[severity] ?? ""}
-          </AlertTitle>
-          {message}
-        </Alert>
-      </Snackbar>
-    );
-  },
-);
+export const AppSnackbar = ({
+  open,
+  message,
+  severity,
+  onClose,
+}: AppSnackbarProps) => {
+  return (
+    <Snackbar open={open} anchorOrigin={anchorOrigin}>
+      <Alert severity={severity} onClose={onClose}>
+        <AlertTitle>
+          {{
+            success: "Success",
+            error: "Error",
+            info: "Info",
+            warning: "Warning",
+          }[severity] ?? ""}
+        </AlertTitle>
+        {message}
+      </Alert>
+    </Snackbar>
+  );
+};
+
 AppSnackbar.displayName = "AppSnackbar";

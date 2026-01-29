@@ -1,16 +1,23 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const getEndpointHandlersTemplate = require("./templates/endpoint/handler");
-const getEndpointInterfacesTemplate = require("./templates/endpoint/interfaces");
-const getEndpointValidationsTemplate = require("./templates/endpoint/validations");
-const getEndpointTestsTemplate = require("./templates/endpoint/index.test");
-const getEndpointPageTemplate = require("./templates/page");
-const { getGenygConfigFile, requirePackages } = require("../../common");
-const fs = require("fs");
-const { camelCase } = require("camel-case");
-const { pascalCase } = require("pascal-case");
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import fs from "fs";
+import path from "path";
+import { camelCase } from "camel-case";
+import { pascalCase } from "pascal-case";
+import { getGenygConfigFile, requirePackages } from "../../common/index.js";
+
+// Templates (CJS/ESM interop)
+import handlerTpl from "./templates/endpoint/handler.js";
+import interfacesTpl from "./templates/endpoint/interfaces.js";
+import validationsTpl from "./templates/endpoint/validations.js";
+import testsTpl from "./templates/endpoint/index.test.js";
+import pageTpl from "./templates/page/index.js";
+const getEndpointHandlersTemplate = handlerTpl?.default || handlerTpl;
+const getEndpointInterfacesTemplate = interfacesTpl?.default || interfacesTpl;
+const getEndpointValidationsTemplate = validationsTpl?.default || validationsTpl;
+const getEndpointTestsTemplate = testsTpl?.default || testsTpl;
+const getEndpointPageTemplate = pageTpl?.default || pageTpl;
 
 const HttpMethods = {
   GET: "get",
@@ -33,7 +40,6 @@ const parseFromText = (text) => {
       if (p[0] === "{") {
         return "{" + camelCaseToDash(p.replace("{", "").replace("}", "")) + "}";
       }
-
       return p;
     });
   return params;
@@ -45,7 +51,7 @@ const getFunctionName = (method, params) => {
     .map((p) =>
       p
         .split("-")
-        .map((p) => capitalize(p))
+        .map((p2) => capitalize(p2))
         .join(""),
     );
   const variables = params
@@ -55,12 +61,10 @@ const getFunctionName = (method, params) => {
         .replace("{", "")
         .replace("}", "")
         .split("-")
-        .map((p) => capitalize(p))
+        .map((p2) => capitalize(p2))
         .join(""),
     );
-  return `${method}${models.join("")}${
-    variables.length ? "By" : ""
-  }${variables.join("And")}`;
+  return `${method}${models.join("")}${variables.length ? "By" : ""}${variables.join("And")}`;
 };
 
 const getEndpointRoutePath = (params) => {
@@ -68,9 +72,7 @@ const getEndpointRoutePath = (params) => {
   const variables = params
     .filter((p) => p[0] === "{")
     .map((p) => p.replace("{", "").replace("}", ""));
-  return `${models.join("-")}${variables.length ? "-by-" : ""}${variables.join(
-    "-and-",
-  )}`;
+  return `${models.join("-")}${variables.length ? "-by-" : ""}${variables.join("-and-")}`;
 };
 
 const getPagesApiFolders = (params) => {
@@ -115,23 +117,21 @@ const getAjaxPath = (params) => {
               .map((p2, index) => (index ? capitalize(p2) : p2))
               .join("")}}`;
           }
-
           return p;
         })
         .join("/")}\``,
       urlParams,
     ];
   }
-
   return [`"/${params.join("/")}"`];
 };
 
-module.exports = class extends Generator {
+export default class ApiGenerator extends Generator {
   async prompting() {
     // Config checks
     requirePackages(this, ["core"]);
 
-    // Have Yeoman greet the user.
+    // Greeting
     this.log(
       yosay(
         `Welcome to ${chalk.red(
@@ -155,7 +155,13 @@ module.exports = class extends Generator {
       },
     ]);
 
-    //cookie auth
+    if (!answers.route || !answers.route.trim()) {
+      this.log(yosay(chalk.red("Please give your page a name next time!")));
+      this.abort = true;
+      return;
+    }
+
+    // Cookie auth
     const config = getGenygConfigFile(this);
     if (config.packages.cookieAuth && config.cookieRoles.length !== 0) {
       Object.assign(
@@ -182,16 +188,12 @@ module.exports = class extends Generator {
       }
     }
 
-    if (answers.route === "") {
-      this.log(yosay(chalk.red("Please give your page a name next time!")));
-      process.exit(1);
-      return;
-    }
-
     this.answers = answers;
   }
 
   writing() {
+    if (this.abort) return;
+
     const { method, route, useCookieAuth, cookieRole } = this.answers;
     const params = parseFromText(route);
     const endpointRoutePath = getEndpointRoutePath(params);
@@ -199,29 +201,25 @@ module.exports = class extends Generator {
     const apiName = getFunctionName(method, params);
     const [routePath, urlParams] = getAjaxPath(params);
     const pagesApiFolders = getPagesApiFolders(params);
-    const hasPayload = [
-      HttpMethods.PATCH,
-      HttpMethods.POST,
-      HttpMethods.PUT,
-    ].includes(method);
+    const hasPayload = [HttpMethods.PATCH, HttpMethods.POST, HttpMethods.PUT].includes(method);
 
-
+    // Create Next.js app router API folders and route.ts
     let currentRoute = "";
     for (let i = 0; i < pagesApiFolders.length; i++) {
       const folder = pagesApiFolders[i];
-      currentRoute += folder + "/";
-      const relativeToPagesFolder = `./src/pages/api/${currentRoute}/`;
+      currentRoute = path.posix.join(currentRoute, folder);
+      const relativeToPagesFolder = path.posix.join("./src/app/api", currentRoute) + "/";
       if (
         !(
           fs.existsSync(relativeToPagesFolder) &&
           fs.lstatSync(relativeToPagesFolder).isDirectory()
         )
       ) {
-        fs.mkdirSync(relativeToPagesFolder);
+        fs.mkdirSync(relativeToPagesFolder, { recursive: true });
       }
-      if (!fs.existsSync(`${relativeToPagesFolder}index.ts`)) {
+      if (!fs.existsSync(path.posix.join(relativeToPagesFolder, "route.ts"))) {
         this.fs.write(
-          this.destinationPath(`${relativeToPagesFolder}index.ts`),
+          this.destinationPath(path.posix.join(relativeToPagesFolder, "route.ts")),
           getEndpointPageTemplate(getEndpointRoutePath(params.slice(0, i + 1))),
         );
       }
@@ -230,46 +228,33 @@ module.exports = class extends Generator {
     // Endpoints folder
     this.fs.write(
       this.destinationPath(
-        `./src/endpoints/${endpointFolderName}/interfaces.ts`,
+        path.posix.join("./src/endpoints", endpointFolderName, "interfaces.ts"),
       ),
       getEndpointInterfacesTemplate(capitalize(apiName), urlParams, hasPayload),
     );
     this.fs.write(
       this.destinationPath(
-        `./src/endpoints/${endpointFolderName}/validations.ts`,
+        path.posix.join("./src/endpoints", endpointFolderName, "validations.ts"),
       ),
-      getEndpointValidationsTemplate(
-        capitalize(apiName),
-        urlParams,
-        hasPayload,
-      ),
+      getEndpointValidationsTemplate(capitalize(apiName), urlParams, hasPayload),
     );
     this.fs.write(
-      this.destinationPath(`./src/endpoints/${endpointFolderName}/handler.ts`),
+      this.destinationPath(
+        path.posix.join("./src/endpoints", endpointFolderName, "handler.ts"),
+      ),
       getEndpointHandlersTemplate(
         capitalize(apiName),
+        hasPayload,
         useCookieAuth,
-        (useCookieAuth ? camelCase(cookieRole) : ""),
+        useCookieAuth ? camelCase(cookieRole) : "",
+        urlParams,
       ),
     );
     this.fs.write(
       this.destinationPath(
-        `./src/endpoints/${endpointFolderName}/index.test.ts`,
+        path.posix.join("./src/endpoints", endpointFolderName, "index.test.ts"),
       ),
-      getEndpointTestsTemplate(
-        endpointFolderName,
-        apiName,
-        capitalize(apiName),
-      ),
-    );
-
-    this.fs.copyTpl(
-      this.templatePath("./endpoint/index.ejs"),
-      this.destinationPath(`./src/endpoints/${endpointFolderName}/index.ts`),
-      {
-        useCookieAuth,
-        cookieRoleCamelCase: (useCookieAuth ? camelCase(cookieRole) : ""),
-      },
+      getEndpointTestsTemplate(endpointFolderName, apiName, capitalize(apiName)),
     );
   }
-};
+}

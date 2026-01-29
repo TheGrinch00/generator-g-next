@@ -26,6 +26,7 @@ export interface ApiRequestPayloadBuilderOptions {
   absolutePath?: boolean;
   withCredentials?: boolean;
   showFeedbackOnError?: boolean;
+  staleTime?: number;
 }
 
 export interface ApiRequestPayloadType<T> {
@@ -35,8 +36,8 @@ export interface ApiRequestPayloadType<T> {
 }
 
 export const apiRequestPayloadBuilder: <T>(
-  ApiRequestPayloadBuilderParams,
-  ApiRequestPayloadBuilderOptions,
+  params: ApiRequestPayloadBuilderParams,
+  options?: ApiRequestPayloadBuilderOptions,
   prepareParams?: T,
 ) => ApiRequestPayloadType<T> = (params, options?, prepareParams?) => ({
   params,
@@ -53,7 +54,7 @@ interface ApiActionRequest<Args extends unknown[]>
   extends ActionCreatorWithPreparedPayload<
     Args,
     ApiRequestPayloadType<Args[0]>
-    > {}
+  > {}
 
 interface ApiSuccessData<T, U> {
   status: number;
@@ -69,23 +70,27 @@ export interface ApiFailData<U> {
 
 export type ApiSuccessAction<T, U = any> = PayloadActionCreator<
   ApiSuccessData<T, U>
-  >;
+>;
 
 export type ApiFailAction<U = any> = PayloadActionCreator<ApiFailData<U>>;
 
-export const apiActionBuilder = <ApiRequestParams, ApiResponseAction, ApiFailedResponseAction>(
+export const apiActionBuilder = <
+  ApiRequestParams,
+  ApiResponseAction,
+  ApiFailedResponseAction,
+>(
   api: string,
   prepare: PrepareAction<ApiRequestPayloadType<ApiRequestParams>>,
 ) => ({
   api,
   request: createAction(`${api}/request`, prepare) as ApiActionRequest<
     [ApiRequestParams, ApiRequestPayloadBuilderOptions?]
-    >,
-  success: (createAction(`${api}/success`, (payload) => ({
+  >,
+  success: createAction(`${api}/success`, (payload) => ({
     payload,
-  })) as unknown) as ApiResponseAction,
-  fail: (createAction(`${api}/fail`, (payload) => ({
+  })) as unknown as ApiResponseAction,
+  fail: createAction(`${api}/fail`, (payload) => ({
     payload,
-  })) as unknown) as ApiFailAction,
+  })) as unknown as ApiFailAction,
   cancel: createAction(`${api}/cancel`),
 });

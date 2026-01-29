@@ -1,16 +1,14 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const { pascalCase } = require("pascal-case");
-const getTemplate = require("./templates/api");
-const fs = require("fs");
-const path = require("path");
-const {
-  getGenygConfigFile,
-  getSpas,
-  requirePackages,
-} = require("../../common");
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import fs from "fs";
+import path from "path";
+import { pascalCase } from "pascal-case";
+import { getGenygConfigFile, getSpas, requirePackages } from "../../common/index.js";
+import getTemplateCjs from "./templates/api.js";
+
+// Ensure CJS/ESM interop for template module
+const getTemplate = getTemplateCjs?.default || getTemplateCjs;
 
 const camelCaseToDash = (s) =>
   s.replace(/([a-zA-Z])(?=[A-Z])/g, "$1-").toLowerCase();
@@ -50,9 +48,7 @@ const getFunctionName = (method, params) => {
         .map((p) => capitalize(p))
         .join(""),
     );
-  return `${method}${models.join("")}${
-    variables.length ? "By" : ""
-  }${variables.join("And")}`;
+  return `${method}${models.join("")}${variables.length ? "By" : ""}${variables.join("And")}`;
 };
 
 const getAjaxFolder = (method, params) => {
@@ -60,9 +56,7 @@ const getAjaxFolder = (method, params) => {
   const variables = params
     .filter((p) => p[0] === "{")
     .map((p) => p.replace("{", "").replace("}", ""));
-  return `${method}-${models.join("-")}${
-    variables.length ? "-by-" : ""
-  }${variables.join("-and-")}`;
+  return `${method}-${models.join("-")}${variables.length ? "-by-" : ""}${variables.join("-and-")}`;
 };
 
 const getAjaxActionRoute = (method, params) => {
@@ -121,12 +115,12 @@ const getAjaxPath = (params) => {
   return [`"/${params.join("/")}"`];
 };
 
-module.exports = class extends Generator {
+export default class AjaxGenerator extends Generator {
   async prompting() {
     // Config checks
     requirePackages(this, ["spa"]);
 
-    // Have Yeoman greet the user.
+    // Greet the user
     this.log(
       yosay(
         `Welcome to ${chalk.red(
@@ -143,7 +137,7 @@ module.exports = class extends Generator {
           type: "list",
           name: "spaFolderName",
           message: "In which SPA you want to create an ajax?",
-          choices: getSpas(this),
+          choices: spas,
         },
       ]);
     } else {
@@ -215,4 +209,4 @@ module.exports = class extends Generator {
       content,
     );
   }
-};
+}

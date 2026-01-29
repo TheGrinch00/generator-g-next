@@ -1,84 +1,93 @@
 "use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const fs = require("fs");
-const path = require("path");
-const { pascalCase } = require("pascal-case");
-const { requirePackages } = require("../../common");
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import path from "path";
+import { fileSelector, ItemType } from "inquirer-file-selector";
+import { pascalCase } from "pascal-case";
+import { requirePackages } from "../../common/index.js";
 
-module.exports = class extends Generator {
-  initializing() {
-    this.env.adapter.promptModule.registerPrompt(
-      "directory",
-      require("inquirer-directory")
-    );
-  }
+const BASE_COMPONENTS_DIR = "src/components";
+
+export default class CompGenerator extends Generator {
+  initializing() {}
 
   async prompting() {
-    // Config checks
+    // Ensure required workspace deps
     requirePackages(this, ["core"]);
 
-    // Have Yeoman greet the user.
     this.log(
       yosay(
         `Welcome to ${chalk.red(
-          "Getapper NextJS Yeoman Generator (GeNYG)"
-        )} component generator, follow the quick and easy configuration to create a new component!`
-      )
+          "Getapper NextJS Yeoman Generator (GeNYG)",
+        )} component generator!`,
+      ),
     );
 
-    const answers = await this.prompt([
-      {
-        type: "directory",
-        name: "componentPath",
-        message: "Select where to create the component:",
-        basePath: "./src/components",
-      },
+    // Browse to choose the destination directory under BASE_COMPONENTS_DIR (Yeoman 5 compatible)
+    const rootAbs = this.destinationPath(BASE_COMPONENTS_DIR);
+    const selection = await fileSelector({
+      message: "Select where to create the component:",
+      type: ItemType.Directory,
+      path: rootAbs,
+      basePath: rootAbs,
+      allowCancel: true
+    });
+
+    const selectedPathAbs =
+      typeof selection === "string"
+        ? selection
+        : selection?.path || selection?.absolutePath || rootAbs;
+    const componentPath = path
+      .relative(rootAbs, selectedPathAbs)
+      .split(path.sep)
+      .join(path.posix.sep);
+
+    const { componentName: rawName } = await this.prompt([
       {
         type: "input",
         name: "componentName",
         message: "What is your component name?",
+        validate: (val) =>
+          (val && val.trim().length > 0) || "Please enter a component name",
+        filter: (val) => (val || "").trim(),
+        transformer: (val) => pascalCase((val || "").trim()),
       },
     ]);
 
-    if (answers.componentName === "") {
-      this.log(
-        yosay(chalk.red("Please give your component a name next time!"))
-      );
-      process.exit(1);
-      return;
+    const name = pascalCase(rawName || "").trim();
+    if (!name) {
+      throw new Error("Component name is required");
     }
 
-    answers.componentName = pascalCase(answers.componentName).trim();
-    this.answers = answers;
+    this.answers = {
+      componentPath,
+      componentName: name,
+    };
   }
 
   writing() {
     const { componentPath, componentName } = this.answers;
 
-    const relativeToComponentsPath = `./${
-      componentPath ? componentPath + "/" : ""
-    }${componentName}`;
+    // Build destination directory under src/components
+    const destDir = path.posix.join(
+      BASE_COMPONENTS_DIR,
+      componentPath ? componentPath : "",
+      componentName,
+    );
 
-    const relativeToRootPath = `./src/components/${relativeToComponentsPath}`;
-
-    // Index.tsx component file
+    // index.tsx
     this.fs.copyTpl(
       this.templatePath("index.ejs"),
-      this.destinationPath(path.join(relativeToRootPath, "/index.tsx")),
-      {
-        ...this.answers,
-      }
+      this.destinationPath(path.posix.join(destDir, "index.tsx")),
+      { ...this.answers },
     );
 
-    // Index.hooks.tsx hooks file
+    // index.hooks.tsx
     this.fs.copyTpl(
       this.templatePath("index.hooks.ejs"),
-      this.destinationPath(path.join(relativeToRootPath, "/index.hooks.tsx")),
-      {
-        ...this.answers,
-      }
+      this.destinationPath(path.posix.join(destDir, "index.hooks.tsx")),
+      { ...this.answers },
     );
   }
-};
+}

@@ -1,3 +1,7 @@
 export class <%= cookieRole %>Session {
   isLoggedIn: boolean;
+
+  constructor(isLoggedIn: boolean = false) {
+    this.isLoggedIn = isLoggedIn;
+  }
 }

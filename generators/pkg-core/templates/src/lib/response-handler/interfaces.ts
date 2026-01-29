@@ -1,4 +1,4 @@
-import * as yup from "yup";
+import { ZodError } from "zod";
 
 enum StatusCodes {
   Continue = 100,
@@ -91,15 +91,16 @@ type YupShapeByInterface<T> = {
 
 export interface ValidationResult {
   isValid: boolean;
-  queryStringParametersErrors?: yup.ValidationError;
-  payloadErrors?: yup.ValidationError;
-  pathParametersErrors?: yup.ValidationError;
+  queryStringParametersErrors?: ZodError;
+  payloadErrors?: ZodError;
+  pathParametersErrors?: ZodError;
   message?: string;
 }
 
-export interface RequestI<Q, P> {
+export interface RequestI<Q, PP, P> {
   validationResult: ValidationResult;
   queryStringParameters: Q;
+  pathParameters: PP;
   payload: P;
   headers?: { [name: string]: string };
 }

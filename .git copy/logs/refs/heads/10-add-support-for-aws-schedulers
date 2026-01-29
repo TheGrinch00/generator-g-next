@@ -1,0 +1,8 @@
+0000000000000000000000000000000000000000 44ec8526e76f750f14ab5975c6247f711ba70865 Antonio Ascone <antonio.ascone997@gmail.com> 1678289961 +0100	branch: Created from origin/10-add-support-for-aws-schedulers
+44ec8526e76f750f14ab5975c6247f711ba70865 d1713d425204681243c90782b9e763447a7d639c Antonio Ascone <antonio.ascone997@gmail.com> 1678290251 +0100	commit: Fix error trial
+d1713d425204681243c90782b9e763447a7d639c e5c4c180c54c865a658ac799c104d84dd4dfdb88 Antonio Ascone <antonio.ascone997@gmail.com> 1678290446 +0100	commit: Resolved commented code issue
+e5c4c180c54c865a658ac799c104d84dd4dfdb88 1db9c9fc34cf138f33a62920f908245865375d7d Antonio Ascone <antonio.ascone997@gmail.com> 1678291259 +0100	commit: Refactored Policy documents
+1db9c9fc34cf138f33a62920f908245865375d7d 79bc930925f122bdd111ea1e4014f916ea19b8a1 Antonio Ascone <antonio.ascone997@gmail.com> 1678291922 +0100	commit: Refactor and try-catch added
+79bc930925f122bdd111ea1e4014f916ea19b8a1 6bfab429fa8c9cac78b7460b9d5c198e4b1478f9 Antonio Ascone <antonio.ascone997@gmail.com> 1678292533 +0100	commit: Refactor
+6bfab429fa8c9cac78b7460b9d5c198e4b1478f9 17bf3cff989f4d0d9322cbb9ea2ec02bcf353f2a Antonio Ascone <antonio.ascone997@gmail.com> 1694509909 +0200	pull: Fast-forward
+17bf3cff989f4d0d9322cbb9ea2ec02bcf353f2a 79f6c354add322a27bb4ba231bd302b428aa56d1 Antonio Ascone <antonio.ascone997@gmail.com> 1694509998 +0200	commit (merge): Merge branch 'main' of https://github.com/getapper/generator-g-next into 10-add-support-for-aws-schedulers

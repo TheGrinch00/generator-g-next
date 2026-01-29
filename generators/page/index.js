@@ -1,158 +1,205 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const path = require("path");
-const { pascalCase } = require("pascal-case");
-const kebabCase = require("kebab-case");
-const { requirePackages, getGenygConfigFile } = require("../../common");
-const { generatePage } = require("../../common/file-generators");
-const { camelCase } = require("camel-case");
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import path from "path";
+import { fileSelector, ItemType } from "inquirer-file-selector";
+import { pascalCase } from "pascal-case";
+import { camelCase } from "camel-case";
+import { requirePackages } from "../../common/index.js";
 
-module.exports = class extends Generator {
-  initializing() {
-    this.env.adapter.promptModule.registerPrompt(
-      "directory",
-      require("inquirer-directory"),
-    );
+// Template modules (each default-exports a function returning a string)
+import layoutTplMod from "./templates/layout.js";
+import pageTplMod from "./templates/page.js";
+import pageDynTplMod from "./templates/page.dynamic.js";
+import loadingTplMod from "./templates/loading.js";
+import errorTplMod from "./templates/error.js";
+import notFoundTplMod from "./templates/not-found.js";
+
+const layoutTpl = layoutTplMod?.default || layoutTplMod;
+const pageTpl = pageTplMod?.default || pageTplMod;
+const pageDynamicTpl = pageDynTplMod?.default || pageDynTplMod;
+const loadingTpl = loadingTplMod?.default || loadingTplMod;
+const errorTpl = errorTplMod?.default || errorTplMod;
+const notFoundTpl = notFoundTplMod?.default || notFoundTplMod;
+
+const BASE_APP_DIR = "src/app";
+
+function analyzeSegment(segment) {
+  // Supports: plain, [slug], [...slug], [[...slug]]
+  const isDynamic = segment.startsWith("[");
+  if (!isDynamic) {
+    return { isDynamic: false };
   }
+  const spread = segment.startsWith("[...");
+  const optional = segment.startsWith("[[...");
+  const name = segment
+    .replace("[...", "")
+    .replace("[[...", "")
+    .replace("]]", "")
+    .replace("]", "");
+  const id = camelCase(name);
+  const paramType = spread
+    ? optional
+      ? `{ ${id}?: string[] }`
+      : `{ ${id}: string[] }`
+    : `{ ${id}: string }`;
+  return { isDynamic: true, id, paramType };
+}
 
+export default class PageGenerator extends Generator {
   async prompting() {
-    // Config checks
     requirePackages(this, ["core"]);
 
-    // Have Yeoman greet the user.
     this.log(
       yosay(
         `Welcome to ${chalk.red(
           "Getapper NextJS Yeoman Generator (GeNYG)",
-        )} page generator, follow the quick and easy configuration to create a new page!`,
+        )} App Router page generator!`,
       ),
     );
 
-    let answers = await this.prompt([
-      {
-        type: "directory",
-        name: "pagePath",
-        message: "Select where to create the page:",
-        basePath: "./src/pages",
-      },
+    // Choose base folder inside src/app
+    const rootAbs = this.destinationPath(BASE_APP_DIR);
+    const fsSel = await fileSelector({
+      message: "Select the parent folder under src/app:",
+      type: ItemType.Directory,
+      basePath: rootAbs,
+    });
+    const selectedAbs =
+      typeof fsSel === "string" ? fsSel : fsSel?.path || fsSel?.absolutePath || rootAbs;
+    const parentRel = path
+      .relative(rootAbs, selectedAbs)
+      .split(path.sep)
+      .join(path.posix.sep);
+
+    const answers = await this.prompt([
       {
         type: "input",
-        name: "pageName",
+        name: "segment",
         message:
-          "What is your page name? (Use squared brackets for single parameters - eg. [postId] -, double square brackets with trailing dots for multiple parameters - eg. [[...params]])",
+          "New route segment name (e.g. admin, users, [slug], [...parts], [[...parts]]):",
       },
       {
         type: "input",
-        name: "componentName",
-        message: "What is your page component name?",
+        name: "pageTitle",
+        message: "Page title (metadata / heading):",
       },
       {
-        type: "list",
-        name: "renderingStrategy",
-        message: "Which function for rendering should be used?",
-        choices: [
-          "none",
-          "Static Generation Props (SSG)",
-          "Server-side Rendering Props (SSR)",
-        ],
-        default: "none",
+        type: "confirm",
+        name: "includeLayout",
+        message: "Generate layout.tsx?",
+        default: true,
+      },
+      {
+        type: "confirm",
+        name: "includeLoading",
+        message: "Generate loading.tsx?",
+        default: true,
+      },
+      {
+        type: "confirm",
+        name: "includeError",
+        message: "Generate error.tsx?",
+        default: true,
+      },
+      {
+        type: "confirm",
+        name: "includeNotFound",
+        message: "Generate not-found.tsx?",
+        default: true,
+      },
+      {
+        type: "confirm",
+        name: "useClient",
+        message: "Use \"use client\" in page component?",
+        default: false,
       },
     ]);
 
-    //cookie auth
-    const config = getGenygConfigFile(this);
-    if (
-      config.packages.cookieAuth &&
-      config.cookieRoles.length !== 0 &&
-      answers.renderingStrategy === "Server-side Rendering Props (SSR)"
-    ) {
-      Object.assign(
-        answers,
-        await this.prompt([
-          {
-            type: "confirm",
-            name: "useCookieAuth",
-            message: "Do you want to use cookie authentication?",
-            default: false,
-          },
-        ]),
-      );
-      if (answers.useCookieAuth) {
-        Object.assign(
-          answers,
-          await this.prompt({
-            type: "list",
-            name: "cookieRole",
-            message: "Select a role from the list",
-            choices: config.cookieRoles,
-          }),
-        );
-      }
-    }
-
-    if (answers.pageName[0] === "[") {
-      answers.dynamic = true;
-      answers.multipleParameters = answers.pageName[1] === "[";
-    } else {
-      answers.dynamic = false;
-    }
-
-    if (answers.pageName === "" || answers.componentName === "") {
-      this.log(yosay(chalk.red("Please give your page a name next time!")));
-      process.exit(1);
+    if (!answers.segment?.trim()) {
+      this.log(yosay(chalk.red("Please provide a segment name.")));
+      this.abort = true;
       return;
     }
 
-    answers.componentName = pascalCase(answers.componentName).trim();
-    answers.pageName = kebabCase(answers.pageName).trim();
-    this.answers = answers;
+    const seg = answers.segment.trim();
+    const segFolder = seg; // keep as provided to support brackets
+    const pageNameBase = seg.replace(/^[\[\.]+|[\]\.]+$/g, "");
+    const PageName = pascalCase(pageNameBase || "Index");
+    const analysis = analyzeSegment(seg);
+
+    this.answers = {
+      parentRel,
+      segFolder,
+      PageName,
+      pageTitle: answers.pageTitle?.trim() || PageName,
+      useClient: !!answers.useClient,
+      includeLayout: !!answers.includeLayout,
+      includeLoading: !!answers.includeLoading,
+      includeError: !!answers.includeError,
+      includeNotFound: !!answers.includeNotFound,
+      isDynamic: analysis.isDynamic,
+      paramType: analysis.paramType,
+    };
   }
 
   writing() {
+    if (this.abort) return;
+
     const {
-      pagePath,
-      pageName,
-      dynamic,
-      componentName,
-      renderingStrategy,
-      multipleParameters,
-      useCookieAuth,
-      cookieRole,
+      parentRel,
+      segFolder,
+      PageName,
+      pageTitle,
+      useClient,
+      includeLayout,
+      includeLoading,
+      includeError,
+      includeNotFound,
+      isDynamic,
+      paramType,
     } = this.answers;
-    const folderName = dynamic
-      ? multipleParameters
-        ? pageName
-        : `[${camelCase(pageName.replace("[", "").replace("]", ""))}]`
-      : pageName
-          .split("-")
-          .filter((s) => s !== "")
-          .join("-");
 
-    const relativeToRootPath = `./src/pages/${
-      pagePath ? pagePath + "/" : ""
-    }${folderName}`;
-
-    // Index.tsx page file
-    this.fs.write(
-      this.destinationPath(path.join(relativeToRootPath, "/index.tsx")),
-      generatePage({
-        componentName,
-        useGetStaticPaths:
-          dynamic && renderingStrategy !== "Server-side Rendering Props (SSR)",
-        useGetStaticProps:
-          renderingStrategy === "Static Generation Props (SSG)",
-        userGetServerSideProps:
-          renderingStrategy === "Server-side Rendering Props (SSR)",
-        useCookieAuth,
-        cookieRole: useCookieAuth ? camelCase(cookieRole) : "",
-        dynamic,
-        multipleParameters,
-        paramName: multipleParameters
-          ? pageName.replace("[[...", "").replace("]]", "")
-          : camelCase(pageName.replace("[", "").replace("]", "")),
-      }),
+    const routeDir = path.posix.join(
+      BASE_APP_DIR,
+      parentRel ? parentRel : "",
+      segFolder,
     );
+
+    // page.tsx
+    this.fs.write(
+      this.destinationPath(path.posix.join(routeDir, "page.tsx")),
+      isDynamic
+        ? pageDynamicTpl({ PageName, pageTitle, paramType, useClient })
+        : pageTpl({ PageName, pageTitle, useClient }),
+    );
+
+    if (includeLayout) {
+      this.fs.write(
+        this.destinationPath(path.posix.join(routeDir, "layout.tsx")),
+        layoutTpl({ PageName, pageTitle }),
+      );
+    }
+
+    if (includeLoading) {
+      this.fs.write(
+        this.destinationPath(path.posix.join(routeDir, "loading.tsx")),
+        loadingTpl({ pageTitle }),
+      );
+    }
+
+    if (includeError) {
+      this.fs.write(
+        this.destinationPath(path.posix.join(routeDir, "error.tsx")),
+        errorTpl({ pageTitle, useClient: true }), // error boundary must be client component
+      );
+    }
+
+    if (includeNotFound) {
+      this.fs.write(
+        this.destinationPath(path.posix.join(routeDir, "not-found.tsx")),
+        notFoundTpl({ pageTitle }),
+      );
+    }
   }
-};
+}

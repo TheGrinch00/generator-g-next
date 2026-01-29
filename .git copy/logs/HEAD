@@ -1,0 +1,24 @@
+0000000000000000000000000000000000000000 dc4788e9e122d857aaea736824eaf5f246949564 Antonio Ascone <antonio.ascone997@gmail.com> 1677513768 +0100	clone: from https://github.com/getapper/generator-g-next.git
+dc4788e9e122d857aaea736824eaf5f246949564 03d1e25edea4507e07789e1110d2a0aafb7fbb2c Antonio Ascone <antonio.ascone997@gmail.com> 1678289936 +0100	pull: Fast-forward
+03d1e25edea4507e07789e1110d2a0aafb7fbb2c 44ec8526e76f750f14ab5975c6247f711ba70865 Antonio Ascone <antonio.ascone997@gmail.com> 1678289961 +0100	checkout: moving from main to 10-add-support-for-aws-schedulers
+44ec8526e76f750f14ab5975c6247f711ba70865 d1713d425204681243c90782b9e763447a7d639c Antonio Ascone <antonio.ascone997@gmail.com> 1678290251 +0100	commit: Fix error trial
+d1713d425204681243c90782b9e763447a7d639c e5c4c180c54c865a658ac799c104d84dd4dfdb88 Antonio Ascone <antonio.ascone997@gmail.com> 1678290446 +0100	commit: Resolved commented code issue
+e5c4c180c54c865a658ac799c104d84dd4dfdb88 1db9c9fc34cf138f33a62920f908245865375d7d Antonio Ascone <antonio.ascone997@gmail.com> 1678291259 +0100	commit: Refactored Policy documents
+1db9c9fc34cf138f33a62920f908245865375d7d 79bc930925f122bdd111ea1e4014f916ea19b8a1 Antonio Ascone <antonio.ascone997@gmail.com> 1678291922 +0100	commit: Refactor and try-catch added
+79bc930925f122bdd111ea1e4014f916ea19b8a1 6bfab429fa8c9cac78b7460b9d5c198e4b1478f9 Antonio Ascone <antonio.ascone997@gmail.com> 1678292533 +0100	commit: Refactor
+6bfab429fa8c9cac78b7460b9d5c198e4b1478f9 17bf3cff989f4d0d9322cbb9ea2ec02bcf353f2a Antonio Ascone <antonio.ascone997@gmail.com> 1694509909 +0200	pull: Fast-forward
+17bf3cff989f4d0d9322cbb9ea2ec02bcf353f2a 79f6c354add322a27bb4ba231bd302b428aa56d1 Antonio Ascone <antonio.ascone997@gmail.com> 1694509998 +0200	commit (merge): Merge branch 'main' of https://github.com/getapper/generator-g-next into 10-add-support-for-aws-schedulers
+79f6c354add322a27bb4ba231bd302b428aa56d1 03d1e25edea4507e07789e1110d2a0aafb7fbb2c Antonio Ascone <antonio.ascone997@gmail.com> 1694511296 +0200	checkout: moving from 10-add-support-for-aws-schedulers to main
+03d1e25edea4507e07789e1110d2a0aafb7fbb2c dc959d4b67c5cbff44ec2905c2a623ddf92ada0b Antonio Ascone <antonio.ascone997@gmail.com> 1694511316 +0200	pull: Fast-forward
+dc959d4b67c5cbff44ec2905c2a623ddf92ada0b dc959d4b67c5cbff44ec2905c2a623ddf92ada0b Antonio Ascone <antonio.ascone997@gmail.com> 1694590659 +0200	reset: moving to HEAD
+dc959d4b67c5cbff44ec2905c2a623ddf92ada0b 67892f234e70338c38a2e4c688e111ba0e8ce27d Antonio Ascone <antonio.ascone997@gmail.com> 1695969948 +0200	checkout: moving from main to 18-add-feature-to-edit-aws-schedulers
+67892f234e70338c38a2e4c688e111ba0e8ce27d 50d668a5555a0e8fdedab4b789948030180e01db Antonio Ascone <antonio.ascone997@gmail.com> 1695970362 +0200	checkout: moving from 18-add-feature-to-edit-aws-schedulers to main
+50d668a5555a0e8fdedab4b789948030180e01db 67892f234e70338c38a2e4c688e111ba0e8ce27d Antonio Ascone <antonio.ascone997@gmail.com> 1696504528 +0200	checkout: moving from main to 18-add-feature-to-edit-aws-schedulers
+67892f234e70338c38a2e4c688e111ba0e8ce27d 248a1a6be23c016e223d0feadcd49c5975113210 Antonio Ascone <antonio.ascone997@gmail.com> 1696504536 +0200	pull: Fast-forward
+248a1a6be23c016e223d0feadcd49c5975113210 248a1a6be23c016e223d0feadcd49c5975113210 Antonio Ascone <antonio.ascone997@gmail.com> 1699611567 +0100	reset: moving to HEAD
+248a1a6be23c016e223d0feadcd49c5975113210 50d668a5555a0e8fdedab4b789948030180e01db Antonio Ascone <antonio.ascone997@gmail.com> 1699611569 +0100	checkout: moving from 18-add-feature-to-edit-aws-schedulers to main
+50d668a5555a0e8fdedab4b789948030180e01db c4cd767bb55d8ffe8ce088ee53bc5673e514fd10 Antonio Ascone <antonio.ascone997@gmail.com> 1699611571 +0100	pull: Fast-forward
+c4cd767bb55d8ffe8ce088ee53bc5673e514fd10 258e82a0a2df34c71e9d1cbf9a05b0a83d067a3a Antonio Ascone <antonioasconedev@gmail.com> 1701099874 +0100	pull: Fast-forward
+258e82a0a2df34c71e9d1cbf9a05b0a83d067a3a f3df2e0954ea3d40fe16f7812abddff9ab881bdd Antonio Ascone <antonioasconedev@gmail.com> 1707160824 +0100	pull: Fast-forward
+f3df2e0954ea3d40fe16f7812abddff9ab881bdd 1fa00c3d4b5b781b1fd08650a9b993a6d84cdadb Antonio Ascone <antonioasconedev@gmail.com> 1758051510 +0200	pull: Fast-forward
+1fa00c3d4b5b781b1fd08650a9b993a6d84cdadb 1fa00c3d4b5b781b1fd08650a9b993a6d84cdadb Antonio Ascone <antonioasconedev@gmail.com> 1758051513 +0200	reset: moving to HEAD

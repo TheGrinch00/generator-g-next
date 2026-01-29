@@ -1,11 +1,5 @@
-import React from "react";
-import dynamic from "next/dynamic";
+"use client";
 
-const <%= spaName %>Spa = dynamic(
-  () => import("./AppWrapper").then((module) => module.default),
-  {
-    ssr: false,
-  },
-);
+import  <%= spaName %>Spa from "./AppWrapper";
 
 export default <%= spaName %>Spa;

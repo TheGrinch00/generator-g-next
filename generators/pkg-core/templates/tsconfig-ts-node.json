@@ -2,7 +2,7 @@
   "extends": "ts-node/node14/tsconfig.json",
   "ts-node": {
     "transpileOnly": true,
-    "files": true,
+    "files": true
   },
   "compilerOptions": {
     "baseUrl": ".",

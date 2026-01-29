@@ -1,19 +1,17 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const pkgJSON = require("../../package.json");
-const yosay = require("yosay");
-const chalk = require("chalk");
+import Generator from "yeoman-generator";
+import yosay from "yosay";
+import chalk from "chalk";
+import pkgJSON from "../../package.json" assert { type: "json" };
 
-module.exports = class extends Generator {
+export default class VersionGenerator extends Generator {
   install() {
+    const version = pkgJSON?.version || "unknown";
     this.log(
       yosay(
         `Welcome to the ${chalk.red(
-          "Getapper NextJS Yeoman Generator (GeNYG)"
-        )}, the current version is: ${
-          JSON.parse(JSON.stringify(pkgJSON)).version
-        }`
-      )
+          "Getapper NextJS Yeoman Generator (GeNYG)",
+        )}!\n\nCurrent version: ${chalk.cyan(version)}`,
+      ),
     );
   }
-};
+}

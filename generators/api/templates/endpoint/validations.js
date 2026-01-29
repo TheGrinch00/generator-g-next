@@ -1,32 +1,22 @@
-module.exports = (
-  apiNameCapital,
-  urlParams,
-  hasPayload
-) => `import { YupShapeByInterface } from "@/lib/response-handler";
-import * as yup from "yup";
-import { ${apiNameCapital}Api } from "./interfaces";
+export default (apiNameCapital, urlParams, hasPayload) => {
+  const hasPathParams = urlParams && urlParams.length > 0;
 
-const queryStringParametersValidations =
-  (): YupShapeByInterface<${apiNameCapital}Api.QueryStringParameters> => ({${
-  urlParams
-    ? urlParams.map((p) => `\n    ${p}: yup.string().required(),`).join("\n") +
-      "\n"
-    : ""
-}});
+  return `import { z } from "zod";
+
+export const queryStringParametersSchema = z.object({});
 ${
-  hasPayload
+  hasPathParams
     ? `
-const payloadValidations =
-  (): YupShapeByInterface<${apiNameCapital}Api.Payload> => ({});
+export const pathParametersSchema = z.object({
+${urlParams.map((p) => `  ${p}: z.string(),`).join("\n")}
+});
 `
     : ""
-}
-export default () => ({
-  queryStringParameters: yup.object().shape(queryStringParametersValidations()),${
+}${
     hasPayload
       ? `
-  payload: yup.object().shape(payloadValidations()),`
+export const payloadSchema = z.object({});
+`
       : ""
-  }
-});
-`;
+  }`;
+};

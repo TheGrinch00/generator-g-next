@@ -1,4 +1,4 @@
-module.exports = (
+export default (
   endpointFolderName,
   apiName,
   apiNameCapital

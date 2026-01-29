@@ -1,40 +1,40 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const path = require("path");
-const fs = require("fs");
-const { pascalCase } = require("pascal-case");
-const { getGenygConfigFile, requirePackages } = require("../../common");
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import path from "path";
+import { pascalCase } from "pascal-case";
+import { getGenygConfigFile, requirePackages } from "../../common/index.js";
 
-module.exports = class extends Generator {
+export default class ModelGenerator extends Generator {
   async prompting() {
     // Config checks
     requirePackages(this, ["core"]);
 
-    // Have Yeoman greet the user.
+    // Greeting
     this.log(
       yosay(
         `Welcome to ${chalk.red(
-          "Getapper NextJS Yeoman Generator (GeNYG)"
-        )} model generator, follow the quick and easy configuration to create a new client or server model!`
-      )
+          "Getapper NextJS Yeoman Generator (GeNYG)",
+        )} model generator, follow the quick and easy configuration to create a new client or server model!`,
+      ),
     );
 
-    // Config checks
+    // Ensure core installed
     const configFile = getGenygConfigFile(this);
     if (!configFile.packages.core) {
       this.log(
         yosay(
           chalk.red(
-            "It seems like the GeNYG core files are not installed yet. Run yo g-next:pkg-core to fix this."
-          )
-        )
+            "It seems like the GeNYG core files are not installed yet. Run yo g-next:pkg-core to fix this.",
+          ),
+        ),
       );
-      process.exit(0);
+      this.abort = true;
+      return;
     }
 
-    const answers = await this.prompt([
+    // Step 1: location + name
+    const baseAnswers = await this.prompt([
       {
         type: "list",
         name: "location",
@@ -50,28 +50,32 @@ module.exports = class extends Generator {
       },
     ]);
 
-    if (answers.modelName === "") {
+    if (!baseAnswers.modelName || !baseAnswers.modelName.trim()) {
       this.log(yosay(chalk.red("Please give your model a name next time!")));
-      process.exit(1);
+      this.abort = true;
       return;
     }
 
-    answers.modelName = pascalCase(answers.modelName).trim();
-    this.answers = answers;
+    const modelName = pascalCase(baseAnswers.modelName).trim();
+
+    this.answers = {
+      location: baseAnswers.location,
+      modelName,
+    };
   }
 
   writing() {
+    if (this.abort) return;
+
     const { modelName, location } = this.answers;
 
-    const relativeToModelsPath = `./src/models/${location}/${modelName}`;
+    const destDir = path.posix.join("src/models", location, modelName);
 
-    // Index.tsx model file
+    // index.ts model file
     this.fs.copyTpl(
       this.templatePath("index.ejs"),
-      this.destinationPath(path.join(relativeToModelsPath, "/index.ts")),
-      {
-        modelName,
-      }
+      this.destinationPath(path.posix.join(destDir, "index.ts")),
+      { modelName },
     );
   }
-};
+}

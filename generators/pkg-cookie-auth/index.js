@@ -1,13 +1,13 @@
-var Generator = require("yeoman-generator");
-const yosay = require("yosay");
-const chalk = require("chalk");
-const {
+import Generator from "yeoman-generator";
+import yosay from "yosay";
+import chalk from "chalk";
+import {
   requirePackages,
   getGenygConfigFile,
   extendConfigFile,
-} = require("../../common");
+} from "../../common/index.js";
 
-module.exports = class extends Generator {
+export default class CookieAuthGenerator extends Generator {
   async prompting() {
     // Config checks
     requirePackages(this, ["core"]);
@@ -22,23 +22,24 @@ module.exports = class extends Generator {
       ),
     );
 
-    this.answers = await this.prompt([
+    const { accept } = await this.prompt([
       {
         type: "confirm",
         name: "accept",
         message: "Are you sure to proceed?",
+        default: true,
       },
     ]);
 
-    if (!this.answers.accept) {
-      process.exit(0);
-    }
+    if (!accept) this.abort = true;
   }
 
   writing() {
-    // Config checks
-    const configFile = getGenygConfigFile(this);
-    if (configFile.packages.cookieAuth) {
+    if (this.abort) return;
+
+    // Guard: do not install twice
+    const configFile = getGenygConfigFile(this) || {};
+    if (configFile.packages && configFile.packages.cookieAuth) {
       this.log(
         yosay(
           chalk.red(
@@ -46,23 +47,24 @@ module.exports = class extends Generator {
           ),
         ),
       );
-      process.exit(0);
+      this.abort = true;
+      return;
     }
 
-    // New dependencies
+    // Dependencies
     this.packageJson.merge({
       dependencies: {
-        "iron-session": "6.3.1",
+        "iron-session": "8.0.4",
       },
     });
 
+    // Templates
+    this.fs.copy(this.templatePath("."), this.destinationRoot());
+
+    // Mark as installed
     extendConfigFile(this, {
-      packages: {
-        cookieAuth: true,
-      },
+      packages: { cookieAuth: true },
       cookieRoles: [],
     });
-
-    this.fs.copy(this.templatePath(), this.destinationRoot());
   }
-};
+}

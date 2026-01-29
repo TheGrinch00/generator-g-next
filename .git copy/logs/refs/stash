@@ -1,0 +1,3 @@
+0000000000000000000000000000000000000000 28b6b326c2c72539e50300ba09a41c7e04fefd71 Antonio Ascone <antonio.ascone997@gmail.com> 1694590659 +0200	WIP on main: dc959d4 Merge pull request #11 from getapper/10-add-support-for-aws-schedulers
+28b6b326c2c72539e50300ba09a41c7e04fefd71 6ec1992964a4de920fedda570c54691c539de25a Antonio Ascone <antonio.ascone997@gmail.com> 1699611567 +0100	WIP on 18-add-feature-to-edit-aws-schedulers: 248a1a6 Added aws-update-scheduler command, now is possible to update status, invocation rate and endpointURL of an existing aws-scheduler Fixed aws-scheduler
+6ec1992964a4de920fedda570c54691c539de25a ef2144d5a1d79052a5003a6648ab80737f3a8c55 Antonio Ascone <antonioasconedev@gmail.com> 1758051513 +0200	WIP on main: 1fa00c3 0.4.2

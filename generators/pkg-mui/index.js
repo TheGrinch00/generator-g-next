@@ -1,16 +1,14 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const {
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import {
   getGenygConfigFile,
   extendConfigFile,
   requirePackages,
-} = require("../../common");
+} from "../../common/index.js";
 
-module.exports = class extends Generator {
+export default class MuiGenerator extends Generator {
   async prompting() {
-    // Config checks
     requirePackages(this, ["core"]);
 
     this.log(
@@ -18,28 +16,30 @@ module.exports = class extends Generator {
         `Hi! Welcome to the official ${chalk.blue(
           "Getapper NextJS Yeoman Generator (GeNYG)",
         )}. ${chalk.red(
-          "This command must be executed only once, and it will install al MUI dependencies.",
+          "This command must be executed only once, and it will install all MUI dependencies.",
         )}`,
       ),
     );
 
-    this.answers = await this.prompt([
+    const { accept } = await this.prompt([
       {
         type: "confirm",
         name: "accept",
         message: "Are you sure to proceed?",
+        default: true,
       },
     ]);
 
-    if (!this.answers.accept) {
-      process.exit(0);
+    if (!accept) {
+      this.abort = true;
     }
   }
 
   writing() {
-    // Config checks
+    if (this.abort) return;
+
     const configFile = getGenygConfigFile(this);
-    if (configFile.packages.mui) {
+    if (configFile && configFile.packages && configFile.packages.mui) {
       this.log(
         yosay(
           chalk.red(
@@ -47,33 +47,47 @@ module.exports = class extends Generator {
           ),
         ),
       );
-      process.exit(0);
+      this.abort = true;
+      return;
     }
 
-    // New dependencies
     this.packageJson.merge({
       dependencies: {
-        "@emotion/react": "11.11.0",
-        "@emotion/styled": "11.11.0",
-        "@hookform/resolvers": "2.8.8",
-        "@mui/icons-material": "5.11.0",
-        "@mui/material": "5.14.2",
-        "@mui/x-data-grid": "6.10.0",
-        "@mui/x-date-pickers": "6.10.0",
-        moment: "2.29.4",
+        "@emotion/react": "11.14.0",
+        "@emotion/styled": "11.14.0",
+        "@mui/icons-material": "7.1.0",
+        "@mui/material": "7.1.0",
+        "@mui/x-data-grid": "7.28.0",
+        "@mui/x-date-pickers": "7.28.0",
+        "@tanstack/react-form": "1.11.1",
+        "@tanstack/react-pacer": "^0.7.0",
+        "@tiptap/extension-color": "^2.3.0",
+        "@tiptap/extension-highlight": "^2.3.0",
+        "@tiptap/extension-image": "^2.3.2",
+        "@tiptap/extension-link": "^2.3.0",
+        "@tiptap/extension-text": "^2.3.0",
+        "@tiptap/extension-text-align": "^2.3.0",
+        "@tiptap/extension-text-style": "^2.3.0",
+        "@tiptap/extension-underline": "^2.3.0",
+        "@tiptap/pm": "^2.3.0",
+        "@tiptap/react": "^2.3.0",
+        "@tiptap/starter-kit": "^2.3.0",
+        dayjs: "1.11.13",
+        "react-color": "^2.19.3",
         "react-dropzone": "12.0.5",
-        "react-hook-form": "7.29.0",
-        yup: "0.32.9",
+        "react-number-format": "5.4.3",
+        zod: "3.25.67",
+      },
+      devDependencies: {
+        "@types/react-color": "^3.0.13",
       },
     });
 
-    // Copy MUI form components
-    this.fs.copy(this.templatePath(), this.destinationRoot());
+    // Copy templates
+    this.fs.copy(this.templatePath("."), this.destinationRoot());
 
     extendConfigFile(this, {
-      packages: {
-        mui: true,
-      },
+      packages: { mui: true },
     });
   }
-};
+}

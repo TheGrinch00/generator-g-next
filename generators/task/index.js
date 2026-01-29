@@ -1,34 +1,28 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const kebabCase = require("kebab-case");
-const { pascalCase } = require("pascal-case");
-const {
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import * as kebabCaseMod from "kebab-case";
+import { pascalCase } from "pascal-case";
+import {
   requirePackages,
   copyEjsTemplateFolder,
   checkPackageInstalled,
-} = require("../../common");
+} from "../../common/index.js";
 
-module.exports = class extends Generator {
-  initializing() {
-    this.env.adapter.promptModule.registerPrompt(
-      "directory",
-      require("inquirer-directory")
-    );
-  }
+const kebab = kebabCaseMod.kebabCase ?? kebabCaseMod.default ?? kebabCaseMod;
 
+export default class TaskGenerator extends Generator {
   async prompting() {
     // Config checks
     requirePackages(this, ["core"]);
 
-    // Have Yeoman greet the user.
+    // Greeting
     this.log(
       yosay(
         `Welcome to ${chalk.red(
-          "Getapper NextJS Yeoman Generator (GeNYG)"
-        )} task generator, follow the quick and easy configuration to create a new task!`
-      )
+          "Getapper NextJS Yeoman Generator (GeNYG)",
+        )} task generator, follow the quick and easy configuration to create a new task!`,
+      ),
     );
 
     const answers = await this.prompt([
@@ -36,24 +30,26 @@ module.exports = class extends Generator {
         type: "input",
         name: "taskName",
         message: "What is your task name?",
+        filter: (v) => (v || "").trim(),
+        validate: (v) => !!v || "Please enter a task name",
       },
     ]);
 
-    if (answers.taskName === "") {
+    if (!answers.taskName) {
       this.log(yosay(chalk.red("Please give your task a name next time!")));
-      process.exit(1);
+      this.abort = true;
       return;
     }
 
-    answers.taskName = pascalCase(answers.taskName).trim();
-    this.answers = answers;
+    this.answers = { taskName: pascalCase(answers.taskName).trim() };
   }
 
   writing() {
+    if (this.abort) return;
+
     const { taskName } = this.answers;
-    const taskFolder = kebabCase(taskName).slice(1);
-    const taskFunctionName =
-      taskName.slice(0, 1).toLowerCase() + taskName.slice(1);
+    const taskFolder = kebab(taskName).slice(1); // kebab-case returns leading '-'
+    const taskFunctionName = taskName.slice(0, 1).toLowerCase() + taskName.slice(1);
 
     const relativeToRootPath = `./src/tasks/${taskFolder}`;
 
@@ -65,8 +61,8 @@ module.exports = class extends Generator {
 
     this.packageJson.merge({
       scripts: {
-        [`TASK:${taskName}`]: `ts-node --project tsconfig-ts-node.json -r tsconfig-paths/register src/tasks/${taskFolder}/exec`,
+        [`TASK:${taskName}`]: `npx tsx -r tsconfig-paths/register src/tasks/${taskFolder}/exec.ts`,
       },
     });
   }
-};
+}

@@ -1,6 +1,6 @@
-const fs = require("fs");
-const yosay = require("yosay");
-const chalk = require("chalk");
+import fs from "fs";
+import yosay from "yosay";
+import chalk from "chalk";
 
 const getGenygConfigFile = (genyg) => {
   return genyg.readDestinationJSON(".genyg.json");
@@ -57,8 +57,7 @@ const extendEnv = (genyg, envName, newContent) => {
   } catch (e) {}
   genyg.fs.write(
     genyg.destinationPath(`.env${envName ? "." + envName : ""}`),
-    `${envFileContent}
-${newContent}`
+    `${envFileContent.trimEnd()}\n${newContent}\n`
   );
 };
 
@@ -69,7 +68,7 @@ const checkPackageInstalled = (genyg, pkg) => {
 
 const checkGenygVersion = (genyg) => {};
 
-module.exports = {
+export {
   getGenygConfigFile,
   requirePackages,
   extendConfigFile,

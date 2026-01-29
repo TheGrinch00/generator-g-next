@@ -1,4 +1,4 @@
-module.exports = (apiNamePC, apiActionRoute, routePath, methodUC, urlParams) => `import {
+export default (apiNamePC, apiActionRoute, routePath, methodUC, urlParams) => `import {
   apiActionBuilder,
   apiRequestPayloadBuilder,
   ApiRequestPayloadBuilderOptions,

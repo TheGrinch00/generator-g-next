@@ -1,16 +1,13 @@
-"use strict";
-const Generator = require("yeoman-generator");
-const chalk = require("chalk");
-const yosay = require("yosay");
-const fs = require("fs");
-const path = require("path");
-const {
+import Generator from "yeoman-generator";
+import chalk from "chalk";
+import yosay from "yosay";
+import {
   getGenygConfigFile,
   extendConfigFile,
   requirePackages,
-} = require("../../common");
+} from "../../common/index.js";
 
-module.exports = class extends Generator {
+export default class SpaGenerator extends Generator {
   async prompting() {
     // Config checks
     requirePackages(this, ["core"]);
@@ -18,57 +15,66 @@ module.exports = class extends Generator {
     this.log(
       yosay(
         `Hi! Welcome to the official ${chalk.blue(
-          "Getapper NextJS Yeoman Generator (GeNYG)"
+          "Getapper NextJS Yeoman Generator (GeNYG)",
         )}. ${chalk.red(
-          "This command will install Redux, Sagas, Persist, React-Router, and everything needed to run SPAs in NextJS."
-        )}`
-      )
+          "This command will install Redux, Sagas, Persist, React-Router, and everything needed to run SPAs in NextJS.",
+        )}`,
+      ),
     );
 
-    // Config checks
+    // Ensure SPA not already installed
     const configFile = getGenygConfigFile(this);
-    if (configFile.packages.spa) {
+    if (configFile && configFile.packages && configFile.packages.spa) {
       this.log(
         yosay(
-          chalk.red("It looks like the GeNYG SPA files were already installed!")
-        )
+          chalk.red(
+            "It looks like the GeNYG SPA files were already installed!",
+          ),
+        ),
       );
-      process.exit(0);
+      this.abort = true;
+      return;
     }
 
-    this.answers = await this.prompt([
+    const { accept } = await this.prompt([
       {
         type: "confirm",
         name: "accept",
         message: "Are you sure to proceed?",
+        default: true,
       },
     ]);
 
-    if (!this.answers.accept) {
-      process.exit(0);
+    if (!accept) {
+      this.abort = true;
     }
   }
 
   writing() {
-    // New dependencies
+    if (this.abort) return;
+
+    // Dependencies required by SPA setup
     this.packageJson.merge({
       dependencies: {
-        "@reduxjs/toolkit": "1.4.0",
-        axios: "0.19.2",
-        "react-redux": "8.0.2",
-        "react-router-dom": "6.3.0",
+        "@reduxjs/toolkit": "2.9.0",
+        "@tanstack/react-query": "5.85.5",
+        axios: "1.12.2",
+        qs: "6.14.0",
+        "react-redux": "9.2.0",
+        "react-router-dom": "7.4.0",
         "redux-persist": "6.0.0",
-        "redux-saga": "1.1.3",
+        "redux-saga": "1.3.0",
       },
     });
 
-    // Copy MUI form components
-    this.fs.copy(this.templatePath(), this.destinationRoot());
+    // Copy SPA templates
+    this.fs.copy(this.templatePath("."), this.destinationRoot());
 
+    // Mark SPA as installed in GeNYG config
     extendConfigFile(this, {
       packages: {
         spa: true,
       },
     });
   }
-};
+}

@@ -22,7 +22,15 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const store = configureStore({
   reducer: persistedReducer,
-  middleware: [sagaMiddleware],
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Ignora queste action types specifiche
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+        // Ignora certe chiavi nello state
+        ignoredPaths: ['register'],
+      },
+    }).concat(sagaMiddleware),
 });
 const persistor = persistStore(store);
 sagaMiddleware.run(rootSaga);

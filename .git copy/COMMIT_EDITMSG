@@ -1,0 +1,5 @@
+Merge branch 'main' of https://github.com/getapper/generator-g-next into 10-add-support-for-aws-schedulers
+
+# Conflicts:
+#	generators/pkg-core/templates/.gitignore
+#	package.json
