@@ -1,24 +1,24 @@
 {
-  "name": "generator-g-next",
-  "version": "0.4.2",
-  "description": "Getapper NextJS Yeoman Generator",
+  "name": "@thegrinch00/generator-g-next",
+  "version": "0.5.0",
+  "description": "Fork of Getapper NextJS Yeoman Generator",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/getapper/generator-g-next.git"
+    "url": "git+https://github.com/TheGrinch00/generator-g-next.git"
   },
   "keywords": [
     "yeoman-generator"
   ],
-  "author": "getapper",
+  "author": "TheGrinch00",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/getapper/generator-g-next/issues"
+    "url": "https://github.com/TheGrinch00/generator-g-next/issues"
   },
-  "homepage": "https://github.com/getapper/generator-g-next#readme",
+  "homepage": "https://github.com/TheGrinch00/generator-g-next#readme",
   "dependencies": {
     "@aws-sdk/client-eventbridge": "3.890.0",
     "@aws-sdk/client-iam": "3.890.0",
