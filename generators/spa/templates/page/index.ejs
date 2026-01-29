@@ -1,0 +1,11 @@
+import React, { memo } from "react";
+import <%= spaName %>Spa from "@/spas/<%= spaFolderName %>";
+
+type <%= pageName %>Props = {}
+
+const <%= pageName %> = memo(({}: <%= pageName %>Props) => {
+  return <<%= spaName %>Spa />;
+});
+<%= pageName %>.displayName = "<%= pageName %>";
+
+export default <%= pageName %>;

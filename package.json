@@ -1,0 +1,42 @@
+{
+  "name": "generator-g-next",
+  "version": "0.4.2",
+  "description": "Getapper NextJS Yeoman Generator",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/getapper/generator-g-next.git"
+  },
+  "keywords": [
+    "yeoman-generator"
+  ],
+  "author": "getapper",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/getapper/generator-g-next/issues"
+  },
+  "homepage": "https://github.com/getapper/generator-g-next#readme",
+  "dependencies": {
+    "@aws-sdk/client-eventbridge": "^3.259.0",
+    "@aws-sdk/client-iam": "^3.259.0",
+    "@aws-sdk/client-scheduler": "^3.259.0",
+    "camel-case": "4.1.2",
+    "chalk": "2.1.0",
+    "eslint-config-next": "13.2.3",
+    "inquirer-directory": "2.2.0",
+    "kebab-case": "1.0.1",
+    "next": "13.2.3",
+    "pascal-case": "3.1.2",
+    "pluralize": "8.0.0",
+    "snake-case": "3.0.4",
+    "typescript": "4.9.5",
+    "yeoman-generator": "5.10.0",
+    "yosay": "2.0.2"
+  },
+  "devDependencies": {
+    "prettier": "2.5.1"
+  }
+}
