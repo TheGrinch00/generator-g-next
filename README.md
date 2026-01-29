@@ -4,7 +4,14 @@
 
 **Package:** published as **`@thegrinch00/generator-g-next`** on npm.
 
-**Commands:** run any generator with `yo g-next:<name>` or `npx yo @thegrinch00/generator-g-next:<name>` from inside your project (e.g. `yo g-next:app`, `yo g-next:pkg-core`). The tables below list generators by **name** only.
+**Commands:** use the **`g-next`** CLI (recommended):
+
+- **`g-next <name>`** — e.g. `g-next version`, `g-next app`, `g-next pkg-core`, `g-next page`
+- Run **`g-next --help`** for all subcommands.
+
+You can also run Yeoman directly: **`yo @thegrinch00/g-next:<name>`** (use `g-next`, not `generator-g-next`, in the namespace).
+
+The tables below list generators by **name** only (use that name with `g-next <name>`).
 
 ---
 
@@ -25,14 +32,68 @@ Most feature generators depend on having run the right `pkg-*` first; the genera
 
 ## Getting started
 
-1. **Install the generator** (global or via npx):
+1. **Install the generator and Yeoman** (global or via npx):
+
    ```bash
    npm install -g yo @thegrinch00/generator-g-next
    ```
+
+   This installs the **`g-next`** CLI as well.
+
 2. **Create and enter a new project folder** (e.g. clone an empty repo or `mkdir my-app && cd my-app`).
-3. **Bootstrap the app** with `yo g-next:app`.
-4. **Install the core package** with `yo g-next:pkg-core` (recommended right after the app).
-5. **Add optional packages** (e.g. `pkg-mui`, `pkg-spa`) and then use the feature generators (page, api, comp, form, slice, etc.).
+
+3. **Bootstrap the app** with:
+
+   ```bash
+   g-next app
+   ```
+
+4. **Install the core package** with `g-next pkg-core` (recommended right after the app).
+
+5. **Add optional packages** (e.g. `g-next pkg-mui`, `g-next pkg-spa`) and then use the feature generators (`g-next page`, `g-next api`, `g-next comp`, `g-next form`, `g-next slice`, etc.).
+
+**Examples:** `g-next version`, `g-next app`, `g-next pkg-core`, `g-next page`, `g-next api`. Run `g-next --help` for the full subcommand list.
+
+---
+
+## Testing locally (before publishing)
+
+To try the package from this repo without publishing to npm:
+
+1. **Install Yeoman globally** (if you don’t have it):  
+   `npm install -g yo`
+
+2. **Install this package globally from the repo root** (simplest):
+
+   ```bash
+   cd /path/to/generator-g-next
+   npm install -g .
+   ```
+
+   That installs the package and makes the **`g-next`** command available.
+
+3. **Test the CLI** from any directory:
+
+   ```bash
+   g-next --help
+   g-next -v
+   g-next version
+   ```
+
+4. **Test a generator** (e.g. in an empty folder):
+
+   ```bash
+   mkdir /tmp/my-test-app && cd /tmp/my-test-app
+   g-next app
+   ```
+
+5. **When done testing**, uninstall the global package:
+
+   ```bash
+   npm uninstall -g @thegrinch00/generator-g-next
+   ```
+
+**Alternative:** use **`npm link`** from the repo root instead of `npm install -g .` to symlink the package; uninstall with `npm uninstall -g @thegrinch00/generator-g-next` when finished.
 
 ---
 

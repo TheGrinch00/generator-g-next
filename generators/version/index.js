@@ -1,7 +1,14 @@
 import Generator from "yeoman-generator";
 import yosay from "yosay";
 import chalk from "chalk";
-import pkgJSON from "../../package.json" assert { type: "json" };
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkgJSON = JSON.parse(
+  readFileSync(join(__dirname, "../../package.json"), "utf8"),
+);
 
 export default class VersionGenerator extends Generator {
   install() {
