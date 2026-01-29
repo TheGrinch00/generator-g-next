@@ -6,7 +6,6 @@
     "spa": false,
     "translations": false,
     "mongodb": false,
-    "cognito": false,
     "cookieAuth": false
   }
 }
