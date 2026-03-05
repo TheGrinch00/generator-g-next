@@ -6,7 +6,7 @@ export function* uiSaga() {
   yield takeEvery(actions.appStartup, function* () {
     // close every dialog on app startup
     Object.values(DialogTypes).forEach(function* (dialogType) {
-      yield put(actions.setDialogOpen({ dialogType, open: false }));
+      yield put(actions.setDialogOpen({ dialogType: dialogType as unknown as DialogTypes, open: false }));
     });
   });
 }

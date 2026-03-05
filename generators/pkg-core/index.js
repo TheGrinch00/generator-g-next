@@ -2,7 +2,7 @@ import Generator from "yeoman-generator";
 import chalk from "chalk";
 import yosay from "yosay";
 
-const NODE_ENGINE = ">=22.0.0 <23.0.0"; // Next 15+ safe range
+const NODE_ENGINE = ">=22.0.0"; // Next 15+ safe range
 const ESLINT_VERSION = "9.15.0"; // required by eslint-config-next@16 (peer >=9.0.0)
 
 export default class PkgCoreGenerator extends Generator {

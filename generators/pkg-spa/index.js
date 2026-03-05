@@ -65,6 +65,9 @@ export default class SpaGenerator extends Generator {
         "redux-persist": "6.0.0",
         "redux-saga": "1.3.0",
       },
+      devDependencies: {
+        "@types/qs": "6.14.0",
+      },
     });
 
     // Copy SPA templates

@@ -6,6 +6,7 @@
     "spa": false,
     "translations": false,
     "mongodb": false,
-    "cookieAuth": false
+    "cookieAuth": false,
+    "postgresql": false
   }
 }

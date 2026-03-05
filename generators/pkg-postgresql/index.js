@@ -98,6 +98,7 @@ export default class PostgresqlGenerator extends Generator {
     const env = Array.from(new Set([...(existing || []), "DATABASE_URL"]));
     this.fs.extendJSON(nextOptionsPath, { env });
 
+    // Mark as installed
     extendConfigFile(this, {
       packages: {
         postgresql: true,
