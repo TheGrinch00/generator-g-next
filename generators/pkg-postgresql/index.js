@@ -86,8 +86,8 @@ export default class PostgresqlGenerator extends Generator {
       `DATABASE_URL=postgres://[user]:[password]@[]:[port]/[db]`,
     );
 
-    // Copy PostgreSQL lib files
-    this.fs.copy(this.templatePath(), this.destinationRoot());
+    // Copy PostgreSQL lib files (contents of templates/ into project root)
+    this.fs.copy(this.templatePath("."), this.destinationPath("."));
 
     // Append env keys to next.config.options.json (merge unique)
     const nextOptionsPath = this.destinationPath("next.config.options.json");
