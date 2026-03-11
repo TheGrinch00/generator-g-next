@@ -5,10 +5,6 @@ const schema = z.object({
   // name: z.string({ required_error: "Error message" })
 });
 
-type <%= formName %>Data = {
-  // name: string;
-};
-
 export const use<%= formName %> = () => {
   const form = useAppForm({
     validators: {
@@ -16,7 +12,7 @@ export const use<%= formName %> = () => {
     },
     defaultValues: {
       // name: "",
-    },
+    } as z.infer<typeof schema>,
     onSubmit: ({ value }) => {}
   });
 

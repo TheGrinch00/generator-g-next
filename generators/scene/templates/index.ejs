@@ -1,14 +1,16 @@
-import React, { memo } from "react";
+import React from "react";
 import { use<%= sceneName %> } from "./index.hooks";
 
 type <%= sceneName %>Props = {}
 
-export const <%= sceneName %> = memo(({}: <%= sceneName %>Props) => {
+export const <%= sceneName %> = ({}: <%= sceneName %>Props) => {
   const {} = use<%= sceneName %>();
 
   return (
-    <div />
+    <div>
+      <h1><%= sceneName %></h1>
+    </div>
   );
-});
+};
 
 <%= sceneName %>.displayName = "<%= sceneName %>";

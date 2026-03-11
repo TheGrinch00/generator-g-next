@@ -2,10 +2,8 @@ import Generator from "yeoman-generator";
 import chalk from "chalk";
 import yosay from "yosay";
 import fs from "fs";
-import path from "path";
 import { pascalCase } from "pascal-case";
 import {
-  getGenygConfigFile,
   getSpas,
   requirePackages,
 } from "../../common/index.js";

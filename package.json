@@ -1,6 +1,6 @@
 {
   "name": "@thegrinch00/generator-g-next",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Fork of Getapper NextJS Yeoman Generator",
   "main": "index.js",
   "bin": {
