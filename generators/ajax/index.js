@@ -4,7 +4,12 @@ import yosay from "yosay";
 import fs from "fs";
 import path from "path";
 import { pascalCase } from "pascal-case";
-import { getGenygConfigFile, getSpas, requirePackages } from "../../common/index.js";
+import {
+  checkPackageInstalled,
+  getGenygConfigFile,
+  getSpas,
+  requirePackages,
+} from "../../common/index.js";
 import getTemplateCjs from "./templates/api.js";
 
 // Ensure CJS/ESM interop for template module
@@ -168,11 +173,27 @@ export default class AjaxGenerator extends Generator {
       return;
     }
 
+    // Telemetry opt-in: only ask if pkg-telemetry is installed
+    if (checkPackageInstalled(this, "telemetry")) {
+      const { withTelemetry } = await this.prompt([
+        {
+          type: "confirm",
+          name: "withTelemetry",
+          message:
+            "Enable tracing for this AJAX (annotate the file with useTelemetry usage)?",
+          default: true,
+        },
+      ]);
+      answers.withTelemetry = withTelemetry;
+    } else {
+      answers.withTelemetry = false;
+    }
+
     this.answers = answers;
   }
 
   writing() {
-    const { method, route, spaFolderName } = this.answers;
+    const { method, route, spaFolderName, withTelemetry } = this.answers;
     const params = parseFromText(route);
     const folderName = getAjaxFolder(method, params);
     const apiName = getFunctionName(method, params);
@@ -187,6 +208,7 @@ export default class AjaxGenerator extends Generator {
       routePath,
       method.toUpperCase(),
       urlParams,
+      withTelemetry,
     );
 
     this.fs.write(

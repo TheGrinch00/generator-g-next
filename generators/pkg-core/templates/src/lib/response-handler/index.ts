@@ -1,5 +1,10 @@
 import { StatusCodes } from "./interfaces";
 import { z } from "zod";
+import {
+  createTraceContext,
+  endTraceContext,
+  type TraceContext,
+} from "@/lib/otel/trace";
 
 function getFirstZodIssueMessage(err: any): string {
   if (!err) return "Validation error";
@@ -179,9 +184,18 @@ export function buildRunner<Q, PP, P, R>(
     payload: P;
     headers: Record<string, string>;
     req: Request;
+    trace: TraceContext;
   }) => Promise<Response>,
 ) {
   return async (raw: WebAdapterInput) => {
+    const method = raw.req.method ?? "UNKNOWN";
+    const url = raw.req.url ?? "unknown";
+    const spanName = `${method} ${new URL(url, "http://localhost").pathname}`;
+
+    const traceCtx = createTraceContext(raw.headers, spanName);
+    traceCtx.setAttribute("http.method", method);
+    traceCtx.setAttribute("http.url", url);
+
     let q: any = raw.query ?? {};
     let pp: any = raw.pathParams ?? {};
     let p: any = raw.body ?? {};
@@ -219,17 +233,51 @@ export function buildRunner<Q, PP, P, R>(
       } else p = r.data;
     }
 
+    if (!validationResult.isValid) {
+      traceCtx.setAttribute("validation.failed", true);
+      if (validationResult.message) {
+        traceCtx.setAttribute("validation.error", validationResult.message);
+      }
+    }
+
+    // Attach query and path params to span
+    for (const [key, value] of Object.entries(q)) {
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        traceCtx.setAttribute(`http.query.${key}`, value);
+      }
+    }
+    for (const [key, value] of Object.entries(pp)) {
+      if (typeof value === "string") {
+        traceCtx.setAttribute(`http.path.${key}`, value);
+      }
+    }
+
     let res = new Response();
 
-    return handler({
-      res,
-      validationResult,
-      queryStringParameters: q as Q,
-      pathParameters: pp as PP,
-      payload: p as P,
-      headers: raw.headers,
-      req: raw.req,
-    });
+    try {
+      const response = await handler({
+        res,
+        validationResult,
+        queryStringParameters: q as Q,
+        pathParameters: pp as PP,
+        payload: p as P,
+        headers: raw.headers,
+        req: raw.req,
+        trace: traceCtx,
+      });
+
+      traceCtx.setAttribute("http.status_code", response.status);
+      endTraceContext(
+        traceCtx,
+        undefined,
+        response.status >= 400 ? `HTTP ${response.status}` : undefined,
+      );
+
+      return response;
+    } catch (err) {
+      endTraceContext(traceCtx, err);
+      throw err;
+    }
   };
 }
 

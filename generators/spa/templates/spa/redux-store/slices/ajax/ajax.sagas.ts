@@ -34,6 +34,9 @@ function* ajaxTask(
     }),
   );
 
+  // Trace headers forwarded from `useTelemetry().getTraceHeaders()` (no-op when telemetry is not used).
+  const traceHeaders = options?.traceHeaders ?? {};
+
   try {
     if (options?.requestDelay) {
       const { timeout } = yield race({
@@ -55,6 +58,9 @@ function* ajaxTask(
               method,
               data: body,
               params: query,
+              headers: {
+                ...traceHeaders,
+              },
               paramsSerializer: (params) =>
                 qs.stringify(params, { arrayFormat: "repeat" }),
               signal: abortController.signal,

@@ -36,6 +36,7 @@ export default (
     hasPayload && "payload",
     "queryStringParameters",
     hasPathParams && "pathParameters",
+    "trace",
   ]
     .filter(Boolean)
     .join(", ");

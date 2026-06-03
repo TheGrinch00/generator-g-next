@@ -27,6 +27,8 @@ export interface ApiRequestPayloadBuilderOptions {
   withCredentials?: boolean;
   showFeedbackOnError?: boolean;
   staleTime?: number;
+  /** Extra headers forwarded on the request — e.g. `{ traceparent }` from `useTelemetry().getTraceHeaders()`. */
+  traceHeaders?: Record<string, string>;
 }
 
 export interface ApiRequestPayloadType<T> {
