@@ -1,0 +1,8 @@
+{
+  "common": {
+    "appName": "App",
+    "language": "Language",
+    "cancel": "Cancel",
+    "save": "Save"
+  }
+}

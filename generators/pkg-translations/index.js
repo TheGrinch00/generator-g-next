@@ -2,8 +2,6 @@
 const Generator = require("yeoman-generator");
 const chalk = require("chalk");
 const yosay = require("yosay");
-const fs = require("fs");
-const path = require("path");
 const { getGenygConfigFile, requirePackages } = require("../../common");
 
 module.exports = class extends Generator {
@@ -16,7 +14,7 @@ module.exports = class extends Generator {
         `Hi! Welcome to the official ${chalk.blue(
           "Getapper NextJS Yeoman Generator (GeNYG)",
         )}. ${chalk.red(
-          "This command must be executed only once, and it will install i18n files and libraries dependencies. Don't forget to add i18n configuration inside you next.config file (i18n: options.i18n), useInitializeTranslations() in your useAppHooks (if you are using SPAs), and to adjust the baseName of your SPAs routers.",
+          "This command must be executed only once. It will install i18next (with browser language detection) and scaffold JSON-based locale files plus an SSR translations helper for the App Router. Import \"@/i18n\" once in your client root (e.g. AppWrapper) and use getSSRTranslations() in server components.",
         )}`,
       ),
     );
@@ -51,15 +49,9 @@ module.exports = class extends Generator {
     // New dependencies
     this.packageJson.merge({
       dependencies: {
-        i18next: "21.8.11",
-        "react-i18next": "11.17.3",
-      },
-    });
-
-    this.fs.extendJSON(this.destinationPath("next.config.options.json"), {
-      i18n: {
-        locales: ["en", "it", "fake"],
-        defaultLocale: "fake",
+        i18next: "^25.8.14",
+        "react-i18next": "^16.5.6",
+        "i18next-browser-languagedetector": "^8.2.1",
       },
     });
 
